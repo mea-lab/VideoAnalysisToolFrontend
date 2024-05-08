@@ -33,36 +33,36 @@ const TaskSelection = ({videoURL, setVideoURL, fileName, setFileName, setVideoDa
         }
 
 
+        // for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
+        //     if (regionFrameBoundingBox.hasOwnProperty('data')) {
+        //         for (let box of regionFrameBoundingBox.data) {
+        //             meanX = meanX + box.x;
+        //             meanY = meanY + box.y;
+        //             meanWidth = meanWidth + box.width;
+        //             meanHeight = meanHeight + box.height;
+        //             total += 1;
+        //         }
+        //     }
+        // }
+
+        // meanX = meanX / total;
+        // meanY = meanY / total;
+        // meanWidth = meanWidth / total;
+        // meanHeight = meanHeight / total;
+
+
         for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
             if (regionFrameBoundingBox.hasOwnProperty('data')) {
                 for (let box of regionFrameBoundingBox.data) {
-                    meanX = meanX + box.x;
-                    meanY = meanY + box.y;
-                    meanWidth = meanWidth + box.width;
-                    meanHeight = meanHeight + box.height;
-                    total += 1;
-                }
-            }
-        }
-
-        meanX = meanX / total;
-        meanY = meanY / total;
-        meanWidth = meanWidth / total;
-        meanHeight = meanHeight / total;
-
-
-        for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
-            if (regionFrameBoundingBox.hasOwnProperty('data')) {
-                for (let box of regionFrameBoundingBox.data) {
-                    if (!(Math.abs(meanX - box.x) > meanX / 2 || Math.abs(meanY - box.y) > meanY / 2
-                        || Math.abs(meanWidth - box.width) > meanWidth / 2 || Math.abs(meanHeight - box.height) > meanHeight / 2)) {
+                    // if (!(Math.abs(meanX - box.x) > meanX / 2 || Math.abs(meanY - box.y) > meanY / 2
+                    //     || Math.abs(meanWidth - box.width) > meanWidth / 2 || Math.abs(meanHeight - box.height) > meanHeight / 2)) {
                         finalX = finalX > box.x ? box.x : finalX;
                         finalY = finalY > box.y ? box.y : finalY;
                         finalWidth = finalWidth < box.width ? box.width : finalWidth;
                         finalRight = finalRight < (box.width + box.x) ? (box.width + box.x) : finalRight;
                         finalBottom = finalBottom < (box.height + box.y) ? (box.height + box.y) : finalBottom;
                         finalHeight = finalHeight < box.height ? box.height : finalHeight;
-                    }
+                    //}
                 }
             }
         }
