@@ -63,7 +63,10 @@ const ScatterPlot = ({ taskRecord }) => {
     let config = {
       modeBarButtonsToRemove: ['zoom2d', 'select2d', 'lasso2d', 'resetScale2d'],
       responsive: true,
-      displaylogo: false
+      displaylogo: false,
+      toImageButtonOptions: {
+        filename: taskRecord.fileName ? taskRecord.fileName+ "_radarPlot" : "radarPlot"
+      }
     }
 
     setPlotlyData(data);
@@ -97,9 +100,10 @@ const ScatterPlot = ({ taskRecord }) => {
     });
 
     const encodedUri = encodeURI(csvContent);
+    const file_name = taskRecord.fileName ? taskRecord.fileName : "";
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "radarTableData.csv");
+    link.setAttribute("download", file_name+"_radarTableData.csv");
     document.body.appendChild(link); // Required for FF
 
     link.click(); // This will download the data file named "radarTableData.csv".

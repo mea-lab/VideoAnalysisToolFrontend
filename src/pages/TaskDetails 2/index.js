@@ -128,6 +128,11 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                     setNormalizationFactor(jsonContent.normalization_factor);
                 }
 
+                updatedRecord = {
+                    ...updatedRecord,
+                    fileName : fileName.replace(/\.[^/.]+$/, "")
+                }
+
 
                 //console.log("updated record is :: " + updatedRecord);
 

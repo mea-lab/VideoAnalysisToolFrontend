@@ -663,7 +663,7 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
             y: 1.15, // Adjust this value to position the annotations on top of the plot
             xref: 'paper',
             yref: 'paper',
-            text: '<b>Add Valley Start</b> - (W)         <b>Add Valley Start</b> - (E)',
+            text: '<b>Add Valley Start</b> - (W)         <b>Add Valley End</b> - (E)',
             showarrow: false, // Do not show arrows for the annotations
             font: {
                 size: 12,
@@ -808,7 +808,10 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                 config={{
                     modeBarButtonsToRemove: ['zoom2d', 'select2d', 'lasso2d', 'resetScale2d'],
                     responsive: true,
-                    displaylogo: false
+                    displaylogo: false,
+                    toImageButtonOptions: {
+                        filename: taskRecord.fileName ? taskRecord.fileName+ "_waveplot" : "WavePlot"
+                    }
                 }}
                 layout={{
                     annotations: annotations,
