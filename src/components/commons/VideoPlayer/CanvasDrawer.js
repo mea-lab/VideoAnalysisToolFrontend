@@ -60,11 +60,21 @@ export class CanvasDrawer {
         }
     }
 
+    enlargeBoundingBox(boundingBox) {
+
+        const newBox = {...boundingBox}; //leaving width and height as is, as they are not being used
+        newBox.x = Math.max(0, boundingBox.x - boundingBox.width * 0.125 );
+        newBox.y = Math.max(0, boundingBox.y - boundingBox.height * 0.125);
+
+        return newBox;
+    }
+
 
     drawLandMarks(seconds) {
         if (this.taskBoxes && !isNaN(this.selectedTask)) {
             this.currentFrame = this.getFrameNumber(seconds);
             let boundingBox = this.taskBoxes[this.selectedTask];
+            boundingBox = this.enlargeBoundingBox(boundingBox);
 
             const landMark = this.getCurrentLandMark();
             if (landMark !== null && Array.isArray(landMark) && landMark.length >= 2) {
@@ -409,6 +419,8 @@ export class CanvasDrawer {
     handleMouseUp(e) {
         this.isResizing = false;
     }
+
+
 
     getBoxHoverSide(x, y) {
 
