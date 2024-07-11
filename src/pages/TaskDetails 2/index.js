@@ -78,6 +78,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                     updatedRecord = {
                         ...updatedRecord,
                         linePlot: jsonContent.linePlot,
+                        rawData: jsonContent.rawData,
                         peaks: jsonContent.peaks,
                         valleys_start: jsonContent.valleys_start,
                         valleys_end: jsonContent.valleys_end,
@@ -89,8 +90,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                 if (jsonContent.hasOwnProperty("radar")) {
                     updatedRecord = {
                         ...updatedRecord,
-                        radar: jsonContent.radar,
-                        velocity: jsonContent.radar.velocity
+                        radar: jsonContent.radar
                     };
                 }
 
@@ -167,13 +167,13 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
 
         const downloadContent = {
             linePlot: fileData.linePlot,
+            rawData: fileData.rawData,
             peaks: fileData.peaks,
             valleys : fileData.valleys,
             valleys_start: fileData.valleys_start,
             valleys_end: fileData.valleys_end,
             radar: {
                 ...fileData.radar,
-                velocity : fileData.radar.velocity
             },
             radarTable: fileData.radarTable,
             landMarks: fileData.landMarks,
