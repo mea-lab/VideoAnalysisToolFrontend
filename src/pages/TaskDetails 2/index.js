@@ -38,6 +38,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
     const [taskRecord, setTaskRecord] = useState({})
     const [taskToPlotMap, setTaskToPlotMap] = useState({});
     const [landMarks, setLandMarks] = useState([]);
+    const [allLandMarks, setAllLandMarks] = useState([])
     const [normalizationLandMarks, setNormalizationLandMarks] = useState([]);
     const [normalizationFactor, setNormalizationFactor] = useState();
     const [frameOffset, setFrameOffset] = useState(0);
@@ -107,9 +108,17 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                 if (jsonContent.hasOwnProperty("landMarks")) {
                     updatedRecord = {
                         ...updatedRecord,
-                        landMarks: jsonContent.landMarks,
+                        landMarks: jsonContent.landMarks
                     };
                     setLandMarks(jsonContent.landMarks);
+                }
+                //save all landmarks 
+                if (jsonContent.hasOwnProperty("allLandMarks")) {
+                    updatedRecord = {
+                        ...updatedRecord,
+                        allLandMarks: jsonContent.allLandMarks
+                    };
+                    setAllLandMarks(jsonContent.allLandMarks);
                 }
 
                 if (jsonContent.hasOwnProperty("normalization_landmarks")) {
@@ -177,6 +186,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
             },
             radarTable: fileData.radarTable,
             landMarks: fileData.landMarks,
+            allLandMarks: fileData.allLandMarks,
             normalization_landmarks: fileData.normalizationLandMarks,
             normalization_factor: fileData.normalizationFactor
 
