@@ -107,7 +107,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                 if (jsonContent.hasOwnProperty("landMarks")) {
                     updatedRecord = {
                         ...updatedRecord,
-                        landMarks: jsonContent.landMarks
+                        landMarks: jsonContent.landMarks,
                     };
                     setLandMarks(jsonContent.landMarks);
                 }
