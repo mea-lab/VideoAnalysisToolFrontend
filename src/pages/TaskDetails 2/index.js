@@ -112,7 +112,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                     };
                     setLandMarks(jsonContent.landMarks);
                 }
-                //save all landmarks 
+                //save all landmarks --  this is new
                 if (jsonContent.hasOwnProperty("allLandMarks")) {
                     updatedRecord = {
                         ...updatedRecord,
@@ -120,7 +120,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                     };
                     setAllLandMarks(jsonContent.allLandMarks);
                 }
-
+                // end of new
                 if (jsonContent.hasOwnProperty("normalization_landmarks")) {
                     updatedRecord = {
                         ...updatedRecord,
@@ -186,7 +186,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
             },
             radarTable: fileData.radarTable,
             landMarks: fileData.landMarks,
-            allLandMarks: fileData.allLandMarks,
+            allLandMarks: fileData.allLandMarks, //this is new
             normalization_landmarks: fileData.normalizationLandMarks,
             normalization_factor: fileData.normalizationFactor
 
