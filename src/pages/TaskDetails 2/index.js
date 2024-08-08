@@ -337,7 +337,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                     {
                         taskToPlotMap[selectedTaskName] != null
                         &&
-                        <PlotWidget key={selectedTask} taskRecord={taskToPlotMap[selectedTaskName]}  videoRef={videoRef} startTime={taskBoxes[selectedTask].start} endTime={taskBoxes[selectedTask].end} handleJSONUpload={handleProcessing}/>
+                        <PlotWidget key={selectedTask} taskName={selectedTaskName} taskRecord={taskToPlotMap[selectedTaskName]}  videoRef={videoRef} startTime={taskBoxes[selectedTask].start} endTime={taskBoxes[selectedTask].end} handleJSONUpload={handleProcessing}/>
                     }
                 </div>
             </div>

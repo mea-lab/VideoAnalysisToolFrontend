@@ -13,7 +13,7 @@ const PlotWidget = (props) => {
             </div>
 
             <div className="pt-6">
-                {props.taskRecord.hasOwnProperty("radar") ? <ScatterPlot taskRecord={props.taskRecord} /> : ""}
+                {props.taskRecord.hasOwnProperty("radar") ? <ScatterPlot taskRecord={props.taskRecord} taskName = {props.taskName} /> : ""}
             </div>
         </div>
 

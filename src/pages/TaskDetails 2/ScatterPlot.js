@@ -3,7 +3,7 @@ import Plot from 'react-plotly.js';
 import Popup from './Popup';
 import ScatterPopup from './ScatterPopup';
 
-const ScatterPlot = ({ taskRecord }) => {
+const ScatterPlot = ({ taskRecord, taskName}) => {
   const [plotlyData, setPlotlyData] = useState([]);
   const [plotlyLayout, setPlotlyLayout] = useState({});
   const [plotlyConfig, setPlotlyConfig] = useState({});
@@ -12,7 +12,7 @@ const ScatterPlot = ({ taskRecord }) => {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
   useEffect(() => {
-    console.log(taskRecord)
+    console.log(taskName)
     let data = [
       {
         type: 'scatterpolar',
@@ -89,6 +89,7 @@ const ScatterPlot = ({ taskRecord }) => {
 
   const downloadCSV = () => {
     const data = Object.entries(taskRecord.radarTable);
+    
     let csvContent = "data:text/csv;charset=utf-8,";
 
     // Adding header row
@@ -103,9 +104,8 @@ const ScatterPlot = ({ taskRecord }) => {
     const file_name = taskRecord.fileName ? taskRecord.fileName : "";
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
-    link.setAttribute("download", file_name+"_radarTableData.csv");
+    link.setAttribute("download", file_name+"_"+taskName+".csv");
     document.body.appendChild(link); // Required for FF
-
     link.click(); // This will download the data file named "radarTableData.csv".
   }
 
