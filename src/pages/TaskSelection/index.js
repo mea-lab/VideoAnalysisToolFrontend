@@ -20,7 +20,10 @@ const TaskSelection = ({videoURL, setVideoURL, fileName, setFileName, setVideoDa
     }, [videoReady]);
 
     const getBoundingRectangleForRegion = (task) => {
-        if (task.hasOwnProperty('width')) {
+        if (task.hasOwnProperty('width') && 
+            task.hasOwnProperty('height') && 
+            task.hasOwnProperty('x') && 
+            task.hasOwnProperty('y')) {
             return task;
         }
         const startFrame = Math.ceil(task.start * fps);
@@ -140,7 +143,6 @@ const TaskSelection = ({videoURL, setVideoURL, fileName, setFileName, setVideoDa
                         setFileName={setFileName}
                         setVideoURL={setVideoURL}
                         setTaskBoxes={setTaskBoxes}
-                        setBoundingBoxes = {setBoundingBoxes}
                     />
                 </div>
                 <div className={"flex flex-col min-h-[100vh] w-1/2 "}>
