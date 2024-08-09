@@ -9,12 +9,13 @@ const TaskSelectionTab = ({tasks, setBoundingBoxes, setTasks, setFPS, setTaskBox
     const getTasksFromTaskBoxes = (curTaskBoxes) => {
         const newTasks = [];
         for (let curTaskBox of curTaskBoxes) {
-            const curTask = {
+            let curTask = {
                 id: curTaskBox?.id,
                 start: curTaskBox?.start,
                 end: curTaskBox?.end,
                 name: curTaskBox?.name
-            };
+            }
+            curTask = { ...curTask, ...curTaskBox};
             newTasks.push(curTask);
         }
 
