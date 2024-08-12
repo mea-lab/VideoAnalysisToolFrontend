@@ -103,7 +103,7 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
     }, []);
 
     useEffect(() => {
-        
+
     }, [revision]);
 
     const savePeaksAndValleys = () => {
@@ -516,6 +516,7 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
             if(removeCycle){
                 setAlertPopupMsg("All the points in the cycle will be removed from the plot. click again to confirm");
                 setShowAlertPopup(true);
+                updateRadarTable();
             }
 
             setRevision(revision + 1);
