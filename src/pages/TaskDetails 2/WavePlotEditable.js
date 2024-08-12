@@ -3,8 +3,6 @@ import Plot from 'react-plotly.js';
 
 const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, handleJSONUpload }) => {
 
-
-
     const [plotData, setPlotdata] = useState(taskRecord.linePlot.data);
     const [plotTimes, setPlotTimes] = useState(taskRecord.linePlot.time);
 
@@ -32,6 +30,7 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
 
 
     const [addNewPoint, setAddNewPoint] = useState(false);
+    const [removeCycle, setRemoveCycle] = useState(false);
     const [showAddButton, setShowAddButton] = useState(false);
     const [addPointName, setAddPointName] = useState('valley_start');
 
@@ -102,6 +101,10 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
             videoElement.removeEventListener('timeupdate', handleTimeUpdate);
         };
     }, []);
+
+    useEffect(() => {
+        
+    }, [revision]);
 
     const savePeaksAndValleys = () => {
 
@@ -321,6 +324,11 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
         showPopUp('please start adding the valley start point');
         setAddNewPoint(true);
     }
+    
+    const removePoint = () => {
+        showPopUp('please click on any point from the cycle to remove the cycle');
+        setRemoveCycle(true);
+    }
 
     const addNewPeakAndValley = (data) => {
         if (addPointName === 'valley_start') {
@@ -393,6 +401,39 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                 showPopUp('You are trying to place new valley end in other valley');
             }
         }
+    }
+
+    const removePeakAndValley = () => {
+        let newPeaksData = peaksData;
+        newPeaksData.splice(selectedPoint.idx, 1);
+        setPeaksData(newPeaksData);
+
+        let newPeaksTimes = peaksTimes;
+        newPeaksTimes.splice(selectedPoint.idx, 1);
+        setPeaksTimes(newPeaksTimes);
+
+        //remove the valleys start
+        let newValleysStartData = valleysStartData;
+        newValleysStartData.splice(selectedPoint.idx, 1);
+        setValleysStartData(newValleysStartData);
+
+        let newValleysStartTimes = valleysStartTime;
+        newValleysStartTimes.splice(selectedPoint.idx, 1);
+        setValleysStartTime(newValleysStartTimes);
+
+        //remove the valleys End
+        let newValleysEndData = valleysEndData;
+        newValleysEndData.splice(selectedPoint.idx, 1);
+        setValleysEndData(newValleysEndData);
+
+        let newValleysEndTimes = valleysEndTimes;
+        newValleysEndTimes.splice(selectedPoint.idx, 1);
+        setValleysEndTime(newValleysEndTimes);
+
+        setSelectedPoint({});
+        resetBlurValues();
+        setIsMarkUp(false);
+        setRemoveCycle(false);
     }
 
     const getNextClosestPoint = (newX) => {
@@ -470,6 +511,11 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                 if ((valleysEndData.some(e => e === data.points[0].y)) && (valleysEndTimes.some(e => e === data.points[0].x))) {
                     setSelectedPoint(handleSelectElementfromArray(valleysEndData, valleysEndTimes, data.points[0].x, data.points[0].data.name));
                 }
+            }
+
+            if(removeCycle){
+                setAlertPopupMsg("All the points in the cycle will be removed from the plot. click again to confirm");
+                setShowAlertPopup(true);
             }
 
             setRevision(revision + 1);
@@ -553,6 +599,23 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
 
     }
 
+    const handleRelayout = (eventData) => {
+        const updatedData = [...peaksData];
+        if (eventData['xaxis.range[0]'] || eventData['yaxis.range[0]']) {
+            // Update the coordinates of the points here based on eventData
+            // For simplicity, assuming one point is dragged and we update its coordinates
+            const xaxis = eventData['xaxis.range[0]'];
+            const yaxis = eventData['yaxis.range[0]'];
+            if (xaxis !== undefined && yaxis !== undefined) {
+                // Assuming we drag the first point for demo
+                // updatedData[0].x[0] = xaxis;
+                // updatedData[0].y[0] = yaxis;
+                console.log("["+xaxis + ", " + yaxis+"]");
+            }
+        }
+        setPeaksData(updatedData);
+    }
+
     const resetBlurValues = () => {
         setBlurEnd(startTime)
         setBlurStart(endTime);
@@ -577,6 +640,9 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
         // // Dispatch the event on the document
         // document.dispatchEvent(event);
         //setSelectedPoint({});
+        if(removeCycle){
+            removePeakAndValley();
+        }
         resetBlurValues();
         //setIsMarkUp(false);
         setRevision(revision + 1);
@@ -814,7 +880,7 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                     }
                 }}
                 layout={{
-                    annotations: annotations,
+                    // annotations: annotations,
                     shapes: shapes,
                     dragmode: 'pan',
                     //dragmode: 'lasso',
@@ -822,9 +888,12 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                     yaxis: { title: 'Distance' },
                     responsive: true,
                     autosize: false,
+                    height: 400, 
+                    margin: { t: 0} ,
                     datarevision: revision, // datarevision helps to update the plot when the data is updated 
                     uirevision: true // uirevision helps to maintain the current zoom leven when the state chages
                 }}
+                //onRelayout={(event) => handleRelayout(event)}
 
             />
             {/* <div className="flex justify-center">
@@ -843,11 +912,10 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                 </div>
             )}
 
-
-
-            {showAddButton && <button onClick={addPoint} className="relative bottom-2 bg-slate-800 px-2 w-36 h-10 text-white rounded-md mt-3 py-2 font-semibold hover:bg-sky-500">Add New Point</button>}
+            <button onClick={addPoint} className="relative bottom-2 right-8 bg-slate-800 px-2 w-36 h-10 text-white rounded-md mt-3 py-2 font-semibold hover:bg-sky-500">Add Cycle</button>
+            <button onClick={removePoint} className="relative bottom-2 bg-slate-800 px-2 w-36 h-10 text-white rounded-md mt-3 py-2 font-semibold hover:bg-sky-500">Remove Cycle</button>
             {showPopup && (
-                <div className="relative bottom-2 bg-gray-300 hover:bg-gray-400 left-1/2 transform -translate-x-1/2 p-8 rounded-lg shadow-lg w-2/3 h-auto">
+                <div className="relative top-1/2 bottom-2 bg-gray-300 hover:bg-gray-400 left-1/2 transform -translate-x-1/2 p-8 rounded-lg shadow-lg w-2/3 h-auto">
                     <span>{popupMsg}</span>
                 </div>
             )}
