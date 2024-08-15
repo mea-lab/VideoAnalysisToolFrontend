@@ -516,7 +516,6 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
             if(removeCycle){
                 setAlertPopupMsg("All the points in the cycle will be removed from the plot. click again to confirm");
                 setShowAlertPopup(true);
-                updateRadarTable();
             }
 
             setRevision(revision + 1);
@@ -647,7 +646,7 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
         resetBlurValues();
         //setIsMarkUp(false);
         setRevision(revision + 1);
-
+        updateRadarTable();
     }
 
     const handleSelectElementfromArray = (arrayValues, arrayTimes, element, name) => {
@@ -679,11 +678,12 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                 valleys_StartData: valleysStartData,
                 valleys_StartTime: valleysStartTime,
                 valleys_EndData: valleysEndData,
-                valleys_EndTime: valleysEndTimes,
-                _velocity: taskRecord.velocity
+                valleys_EndTime: valleysEndTimes
             };
 
             jsonData = JSON.stringify(jsonData);
+
+            console.log(jsonData);
 
             uploadData.append('json_data', jsonData);
             const response = await fetch('http://localhost:8000/api/update_plot/', {
