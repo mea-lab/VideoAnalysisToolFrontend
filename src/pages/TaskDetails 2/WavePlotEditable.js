@@ -6,6 +6,9 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
     const [plotData, setPlotdata] = useState(taskRecord.linePlot.data);
     const [plotTimes, setPlotTimes] = useState(taskRecord.linePlot.time);
 
+    const [velocityData, setVelocityData] = useState(taskRecord.velocityPlot.data)
+    const [velocityTime, setVelocityTime] = useState(taskRecord.velocityPlot.time)
+
     const [peaksData, setPeaksData] = useState(taskRecord.peaks.data);
     const [peaksTimes, setPeaksTimes] = useState(taskRecord.peaks.time);
 
@@ -678,12 +681,14 @@ const WavePlotEditable = ({ taskRecord, videoRef, onClose, startTime, endTime, h
                 valleys_StartData: valleysStartData,
                 valleys_StartTime: valleysStartTime,
                 valleys_EndData: valleysEndData,
-                valleys_EndTime: valleysEndTimes
+                valleys_EndTime: valleysEndTimes,
+                velocity_Data: velocityData,
+                velocity_Time: velocityTime,
             };
 
             jsonData = JSON.stringify(jsonData);
 
-            console.log(jsonData);
+            // console.log(jsonData);
 
             uploadData.append('json_data', jsonData);
             const response = await fetch('http://localhost:8000/api/update_plot/', {

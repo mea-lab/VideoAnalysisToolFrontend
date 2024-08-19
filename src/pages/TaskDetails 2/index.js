@@ -79,6 +79,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
                     updatedRecord = {
                         ...updatedRecord,
                         linePlot: jsonContent.linePlot,
+                        velocityPlot: jsonContent.velocityPlot,
                         rawData: jsonContent.rawData,
                         peaks: jsonContent.peaks,
                         valleys_start: jsonContent.valleys_start,
@@ -176,6 +177,7 @@ const TaskDetails = ({ videoURL, setVideoURL, fileName, setFileName, setVideoDat
 
         const downloadContent = {
             linePlot: fileData.linePlot,
+            velocityPlot: fileData.velocityPlot,
             rawData: fileData.rawData,
             peaks: fileData.peaks,
             valleys : fileData.valleys,
