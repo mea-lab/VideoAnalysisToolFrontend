@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
 import CircularProgressWithLabel from '../SubjectResolution/CircularProgressWithLabel';
@@ -12,8 +12,6 @@ const TasksWaveForm = ({
   isVideoReady,
   setTasksReady,
   tasksReady,
-  onNewTask,
-  onTaskChange,
 }) => {
   const waveformRef = useRef(null);
   const waveSurfer = useRef(null);
@@ -22,7 +20,54 @@ const TasksWaveForm = ({
   const [loadPercent, setLoadPercent] = useState(0);
   const tasksRef = useRef(tasks);
 
+  const handleNewRegionDrag = useCallback(
+    region => {
+      if (region.content) return;
+
+      const taskId = getHighestId() + 1;
+      const startTime = Number(Number(region.start).toFixed(3));
+      const endTime = Number(Number(region.end).toFixed(3));
+      const regionName = `Region ${taskId}`;
+
+      region.setContent(regionName);
+      region.setOptions({
+        ...region.options,
+        id: taskId,
+      });
+
+      const newTask = {
+        start: startTime,
+        end: endTime,
+        name: regionName,
+        id: taskId,
+      };
+
+      setTasks([...tasksRef.current, newTask]);
+
+      if (!tasksReady) setTasksReady(true);
+    },
+    [setTasks, setTasksReady, tasksReady],
+  );
+
   useEffect(() => {
+    const getWaveSurferOptions = () => {
+      return {
+        container: waveformRef.current,
+        waveColor: 'violet',
+        progressColor: 'purple',
+        cursorColor: 'navy',
+        barWidth: 2,
+        barRadius: 3,
+        responsive: true,
+        height: 100,
+        minPxPerSec: 680 / videoRef.current.duration,
+        autoScroll: true,
+        normalize: true,
+        zoom: true,
+        scrollParent: true,
+        media: videoRef.current,
+      };
+    };
     if (!isVideoReady) return;
 
     if (waveSurfer.current === null)
@@ -53,7 +98,12 @@ const TasksWaveForm = ({
     return () => {
       waveSurfer.current?.destroy();
     };
-  }, [isVideoReady]);
+  }, [
+    getWaveSurferOptions,
+    handleNewRegionDrag,
+    handleRegionUpdate,
+    isVideoReady,
+  ]);
 
   useEffect(() => {
     tasksRef.current = tasks;
@@ -93,7 +143,7 @@ const TasksWaveForm = ({
         }
       }
     }
-  }, [tasks]);
+  }, [handleNewRegionDrag, handleRegionUpdate, tasks]);
 
   const updateRegions = () => {
     const wsRegions = waveSurferRegions.current;
@@ -111,75 +161,33 @@ const TasksWaveForm = ({
     }
   };
 
-  const handleNewRegionDrag = region => {
-    if (region.content) return;
-
-    const taskId = getHighestId() + 1;
-    const startTime = Number(Number(region.start).toFixed(3));
-    const endTime = Number(Number(region.end).toFixed(3));
-    const regionName = `Region ${taskId}`;
-
-    region.setContent(regionName);
-    region.setOptions({
-      ...region.options,
-      id: taskId,
-    });
-
-    const newTask = {
-      start: startTime,
-      end: endTime,
-      name: regionName,
-      id: taskId,
-    };
-
-    setTasks([...tasksRef.current, newTask]);
-
-    if (!tasksReady) setTasksReady(true);
-  };
-
-  const handleRegionUpdate = region => {
-    const updatedTasks = tasksRef.current.map(task => {
-      if (
-        task.id === region.id &&
-        (task.start !== region.start || task.end !== region.end)
-      ) {
-        const startTime = Number(Number(region.start).toFixed(3));
-        const endTime = Number(Number(region.end).toFixed(3));
-        region.setOptions({
-          ...region.options,
-          start: startTime,
-          end: endTime,
-        });
-        return {
-          ...task,
-          start: startTime,
-          end: endTime,
-        };
-      } else {
-        return { ...task };
-      }
-    });
-    setTasks(updatedTasks);
-  };
-
-  const getWaveSurferOptions = () => {
-    return {
-      container: waveformRef.current,
-      waveColor: 'violet',
-      progressColor: 'purple',
-      cursorColor: 'navy',
-      barWidth: 2,
-      barRadius: 3,
-      responsive: true,
-      height: 100,
-      minPxPerSec: 680 / videoRef.current.duration,
-      autoScroll: true,
-      normalize: true,
-      zoom: true,
-      scrollParent: true,
-      media: videoRef.current,
-    };
-  };
+  const handleRegionUpdate = useCallback(
+    region => {
+      const updatedTasks = tasksRef.current.map(task => {
+        if (
+          task.id === region.id &&
+          (task.start !== region.start || task.end !== region.end)
+        ) {
+          const startTime = Number(Number(region.start).toFixed(3));
+          const endTime = Number(Number(region.end).toFixed(3));
+          region.setOptions({
+            ...region.options,
+            start: startTime,
+            end: endTime,
+          });
+          return {
+            ...task,
+            start: startTime,
+            end: endTime,
+          };
+        } else {
+          return { ...task };
+        }
+      });
+      setTasks(updatedTasks);
+    },
+    [setTasks],
+  );
 
   const onZoomChange = zoomLevel => {
     if (isVideoReady) {
@@ -219,7 +227,7 @@ const TasksWaveForm = ({
     <>
       <div
         className={
-          'flex flex-col gap-2 justify-center items-center w-full pt-4 px-2'
+          'flex flex-col gap-2 justify-center items-center w-full max-w-screen-lg mx-auto pt-4 px-2'
         }
       >
         <div

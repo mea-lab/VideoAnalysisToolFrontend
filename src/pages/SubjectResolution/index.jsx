@@ -27,7 +27,7 @@ const SubjectResolution = ({
       setPersons([]);
       setBoundingBoxes([]);
     }
-  }, [videoReady]);
+  }, [setBoundingBoxes, videoReady]);
 
   const checkIfSubject = id => {
     let person = persons.find(person => person.id === id);
@@ -45,7 +45,7 @@ const SubjectResolution = ({
     updateFinalBoundingBoxes();
     setElement(TaskSelection);
   };
-  const onFPSCalculation = fps => {
+  const onFPSCalculation = () => {
     setVideoReady(true);
   };
 

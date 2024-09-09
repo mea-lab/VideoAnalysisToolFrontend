@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PlayCircleOutline } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import JSONUploadDialog from '../../VideoAnalysis/JSONUploadDialog';
@@ -50,6 +50,10 @@ const SubjectSelectionTab = ({
   const [openJsonUpload, setOpenJsonUpload] = useState(false);
 
   useEffect(() => {
+    const convertFrameNumberToTimestamp = frameNumber => {
+      return (frameNumber / fps).toFixed(2);
+    };
+
     if (persons.length !== 0) return;
 
     const firstOccurrenceMap = new Map();
@@ -73,7 +77,7 @@ const SubjectSelectionTab = ({
     }));
 
     setPersons(personArray);
-  }, [boundingBoxes]);
+  }, [boundingBoxes, fps, persons.length, setPersons]);
 
   useEffect(() => {
     if (persons.length === 1) {
@@ -83,11 +87,7 @@ const SubjectSelectionTab = ({
       }));
       setPersons(subjectMarkedPersons);
     }
-  }, [persons]);
-
-  const convertFrameNumberToTimestamp = frameNumber => {
-    return (frameNumber / fps).toFixed(2);
-  };
+  }, [persons, setPersons]);
 
   const handlePlay = timestamp => {
     if (
@@ -116,8 +116,7 @@ const SubjectSelectionTab = ({
     if (jsonFileUploaded) {
       setBoundingBoxes(jsonContent['boundingBoxes']);
       setFPS(jsonContent['fps']);
-      if (jsonContent.hasOwnProperty('persons'))
-        setPersons(jsonContent['persons']);
+      if ('persons' in jsonContent) setPersons(jsonContent['persons']);
       console.log('JSON file details captured and added.');
       setBoxesReady(true);
     }
