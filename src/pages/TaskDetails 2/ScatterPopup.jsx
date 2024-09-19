@@ -1,4 +1,3 @@
-import React, { useState, useRef } from 'react';
 import Plot from 'react-plotly.js';
 
 const ScatterPopup = ({ plotData, plotConfig, onClose }) => {

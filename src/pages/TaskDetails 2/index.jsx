@@ -1,10 +1,10 @@
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import HeaderSection from './HeaderSection';
 import Button from '@mui/material/Button';
 import JSONUploadDialog from './JSONUploadDialog';
 import PlotWidget from './PlotWidget';
-import { RestartAlt, CloudDownload, TouchApp } from '@mui/icons-material';
+import { RestartAlt, CloudDownload } from '@mui/icons-material';
 
 function useDebounce(callback, delay) {
   const argsRef = useRef();
@@ -30,26 +30,20 @@ const TaskDetails = ({
   setFileName,
   setVideoData,
   boundingBoxes,
-  setBoundingBoxes,
-  setElement,
   taskBoxes,
   fps,
-  setFPS,
 }) => {
   const videoRef = useRef(null);
   const [videoReady, setVideoReady] = useState(false);
-  // const [tasks, setTasks] = useState([]);
-  // const [taskBoxes, setTaskBoxes] = useState([]);
-  const [dataReady, setDataReady] = useState(false);
+  const [_, setDataReady] = useState(false);
   const [openJsonUpload, setOpenJsonUpload] = useState(false);
   const [selectedTask, setSelectedTask] = useState(0);
   const [selectedTaskName, setSelectedTaskName] = useState();
-  const [taskRecord, setTaskRecord] = useState({});
   const [taskToPlotMap, setTaskToPlotMap] = useState({});
-  const [landMarks, setLandMarks] = useState([]);
-  const [allLandMarks, setAllLandMarks] = useState([]);
-  const [normalizationLandMarks, setNormalizationLandMarks] = useState([]);
-  const [normalizationFactor, setNormalizationFactor] = useState();
+  const [, setLandMarks] = useState([]);
+  const [setAllLandMarks] = useState([]);
+  const [, setNormalizationLandMarks] = useState([]);
+  const [, setNormalizationFactor] = useState();
   const [frameOffset, setFrameOffset] = useState(0);
 
   const tasks = taskBoxes;
@@ -67,9 +61,9 @@ const TaskDetails = ({
         videoRef.current.currentTime = startTime;
       }
     };
-  }, [selectedTask]);
+  }, [selectedTask, tasks]);
 
-  const onFPSCalculation = fps => {
+  const onFPSCalculation = () => {
     setVideoReady(true);
   };
 
@@ -79,10 +73,10 @@ const TaskDetails = ({
 
   const handleProcessing = (jsonFileUploaded, jsonContent) => {
     if (jsonFileUploaded && jsonContent !== null) {
-      if (jsonContent.hasOwnProperty('linePlot')) {
+      if ('linePlot' in jsonContent) {
         let updatedRecord = taskToPlotMap[selectedTaskName];
 
-        if (jsonContent.hasOwnProperty('linePlot')) {
+        if ('linePlot' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             linePlot: jsonContent.linePlot,
@@ -95,14 +89,13 @@ const TaskDetails = ({
           };
         }
 
-        if (jsonContent.hasOwnProperty('radar')) {
+        if ('radar' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             radar: jsonContent.radar,
           };
         }
-
-        if (jsonContent.hasOwnProperty('radarTable')) {
+        if ('radarTable' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             radarTable: {
@@ -112,7 +105,7 @@ const TaskDetails = ({
           };
         }
 
-        if (jsonContent.hasOwnProperty('landMarks')) {
+        if ('landMarks' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             landMarks: jsonContent.landMarks,
@@ -120,7 +113,7 @@ const TaskDetails = ({
           setLandMarks(jsonContent.landMarks);
         }
         //save all landmarks --  this is new
-        if (jsonContent.hasOwnProperty('allLandMarks')) {
+        if ('allLandMarks' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             allLandMarks: jsonContent.allLandMarks,
@@ -128,7 +121,7 @@ const TaskDetails = ({
           setAllLandMarks(jsonContent.allLandMarks);
         }
         // end of new
-        if (jsonContent.hasOwnProperty('normalization_landmarks')) {
+        if ('normalization_landmarks' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             normalizationLandMarks: jsonContent.normalization_landmarks,
@@ -136,7 +129,7 @@ const TaskDetails = ({
           setNormalizationLandMarks(jsonContent.normalization_landmarks);
         }
 
-        if (jsonContent.hasOwnProperty('normalization_factor')) {
+        if ('normalization_factor' in jsonContent) {
           updatedRecord = {
             ...updatedRecord,
             normalization_factor: jsonContent.normalization_factor,
@@ -168,7 +161,7 @@ const TaskDetails = ({
   const resetTask = () => {
     let newTaskToPlotMap = { ...taskToPlotMap };
 
-    if (newTaskToPlotMap.hasOwnProperty(selectedTaskName)) {
+    if (selectedTaskName in newTaskToPlotMap) {
       newTaskToPlotMap[selectedTaskName] = null;
       setTaskToPlotMap(newTaskToPlotMap);
     }
@@ -238,12 +231,7 @@ const TaskDetails = ({
       if (response.ok) {
         const data = await response.json();
         // let newJsonData = { ...taskRecord };
-
-        if (true) {
-          handleProcessing(true, data);
-        } else {
-          throw new Error('Invalid input received from server');
-        }
+        handleProcessing(true, data);
       } else {
         throw new Error('Server responded with an error!');
       }
@@ -255,10 +243,9 @@ const TaskDetails = ({
   const updateNewLandMarks = newLandMarks => {
     let newTaskToPlotMap = { ...taskToPlotMap };
 
-    if (newTaskToPlotMap.hasOwnProperty(selectedTaskName)) {
+    if (selectedTaskName in newTaskToPlotMap)
       newTaskToPlotMap[selectedTaskName].landMarks = newLandMarks;
-      setTaskToPlotMap(newTaskToPlotMap);
-    }
+    setTaskToPlotMap(newTaskToPlotMap);
   };
 
   const handleLandMarksChange = newLandMarks => {

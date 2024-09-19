@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Button from '@mui/material/Button';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -14,7 +13,6 @@ export default function JSONUploadDialog({
   dialogOpen,
   setDialogOpen,
   handleJSONUpload,
-  boundingBoxes,
   videoRef,
   fps,
   tasks,
@@ -30,65 +28,9 @@ export default function JSONUploadDialog({
   };
 
   const handleJSONProcess = () => {
-    // setFileName("");
     setFileError('');
     handleJSONUpload(true, jsonContent);
     setDialogOpen(false);
-  };
-
-  const handleAutoProcess = async () => {
-    await getAnalysis();
-    // handleJSONUpload(true, null);
-    // setDialogOpen(false);
-  };
-
-  const validateNewJson = data => {
-    if (!data.hasOwnProperty('fps')) {
-      throw new Error('fps field is missing.');
-    } else if (typeof data.fps !== 'number') {
-      throw new Error('fps should be a number.');
-    }
-
-    if (!data.hasOwnProperty('boundingBoxes')) {
-      throw new Error('boundingBoxes field is missing.');
-    } else if (!Array.isArray(data.boundingBoxes)) {
-      throw new Error('boundingBoxes should be an array.');
-    }
-
-    data.boundingBoxes.forEach(box => {
-      if (!box.hasOwnProperty('frameNumber')) {
-        throw new Error('frameNumber field in boundingBoxes is missing.');
-      } else if (typeof box.frameNumber !== 'number') {
-        throw new Error('frameNumber in boundingBoxes should be a number.');
-      }
-
-      if (!box.hasOwnProperty('data')) {
-        throw new Error('data field in boundingBoxes is missing.');
-      } else if (!Array.isArray(box.data)) {
-        throw new Error('data in boundingBoxes should be an array.');
-      }
-
-      box.data.forEach(item => {
-        if (!item.hasOwnProperty('id')) {
-          throw new Error('id field in boundingBoxes data is missing.');
-        }
-        // } else if (typeof item.id !== 'number') {
-        //     throw new Error('id in boundingBoxes data should be a number.');
-        // }
-
-        ['x', 'y', 'width', 'height'].forEach(prop => {
-          if (!item.hasOwnProperty(prop)) {
-            throw new Error(`${prop} field in boundingBoxes data is missing.`);
-          } else if (typeof item[prop] !== 'number') {
-            throw new Error(
-              `${prop} in boundingBoxes data should be a number.`,
-            );
-          }
-        });
-      });
-    });
-
-    return true;
   };
 
   const validateOldJson = json => {
@@ -128,66 +70,78 @@ export default function JSONUploadDialog({
     return true;
   };
 
-  const validateJson = data => {
-    //     let validNewJson = false;
-    //     let validOldJson = false;
-    //     let errorMessage = "";
-    //     try {
-    //         validNewJson = validateNewJson(data);
+  const validateNewJson = data => {
+    if (!('fps' in data)) {
+      throw new Error('fps field is missing.');
+    } else if (typeof data.fps !== 'number') {
+      throw new Error('fps should be a number.');
+    }
 
-    //     } catch (error) {
-    //         errorMessage = error.message;
-    //         // setFileError(error.message);
-    //         validNewJson = false;
-    //     }
+    if (!('boundingBoxes' in data)) {
+      throw new Error('boundingBoxes field is missing.');
+    } else if (!Array.isArray(data.boundingBoxes)) {
+      throw new Error('boundingBoxes should be an array.');
+    }
 
-    //     try {
-    //         validOldJson = validateOldJson(data);
+    data.boundingBoxes.forEach(box => {
+      if (!('frameNumber' in box)) {
+        throw new Error('frameNumber field in boundingBoxes is missing.');
+      } else if (typeof box.frameNumber !== 'number') {
+        throw new Error('frameNumber in boundingBoxes should be a number.');
+      }
 
-    //     } catch (error) {
-    //         errorMessage = error.message;
-    //         // setFileError(error.message);
-    //         validOldJson = false;
-    //     }
+      if (!('data' in box)) {
+        throw new Error('data field in boundingBoxes is missing.');
+      } else if (!Array.isArray(box.data)) {
+        throw new Error('data in boundingBoxes should be an array.');
+      }
 
-    //     if (validNewJson || validOldJson) {
-    //         setFileError(errorMessage);
-    //         return true;
-    //     }
+      box.data.forEach(item => {
+        if (!('id' in item)) {
+          throw new Error('id field in boundingBoxes data is missing.');
+        }
 
-    //    return false;
+        ['x', 'y', 'width', 'height'].forEach(prop => {
+          if (!(prop in item)) {
+            throw new Error(`${prop} field in boundingBoxes data is missing.`);
+          } else if (typeof item[prop] !== 'number') {
+            throw new Error(
+              `${prop} in boundingBoxes data should be a number.`,
+            );
+          }
+        });
+      });
+    });
 
     return true;
   };
 
-  const handleFileChange = async event => {
-    const file = event.target.files[0];
-    if (file) {
-      if (file.name.endsWith('.json') || file.name.endsWith('.parse')) {
-        try {
-          const content = await file.text();
-          const jsonContent = JSON.parse(content);
-          if (validateJson(jsonContent)) {
-            setJSONContent(JSON.parse(content));
-            // setFileName(file.name);
-            setFileError('');
-          }
-        } catch (error) {
-          setFileError('Error reading the file.');
-        }
-      } else {
-        setFileError('Please select a valid JSON file.');
-      }
+  const validateJson = data => {
+    let validNewJson = false;
+    let validOldJson = false;
+    let errorMessage = '';
+    try {
+      validNewJson = validateNewJson(data);
+    } catch (error) {
+      errorMessage = error.message;
+      // setFileError(error.message);
+      validNewJson = false;
     }
-  };
 
-  const getAnalysis = async () => {
-    setServerProcessing(true);
-    const videoURL = videoRef.current.src;
+    try {
+      validOldJson = validateOldJson(data);
+    } catch (error) {
+      errorMessage = error.message;
+      // setFileError(error.message);
+      validOldJson = false;
+    }
 
-    let blob = await fetch(videoURL).then(r => r.blob());
+    if (validNewJson || validOldJson) {
+      setFileError(errorMessage);
+      return true;
+    }
 
-    fetchAnalysisDetails(blob);
+    return false;
   };
 
   const fetchAnalysisDetails = async content => {
@@ -196,26 +150,12 @@ export default function JSONUploadDialog({
       uploadData.append('video', content);
       let taskData = tasks[selectedTask];
 
-      // {
-      //     "start": 1.074,
-      //     "end": 2.754,
-      //     "name": "Dynamic tremor",
-      //     "id": 1,
-      //     "x": 221,
-      //     "y": 673,
-      //     "width": 638,
-      //     "height": 1238
-      // },
-      //
-
       let boundingBox = {
         x: taskData.x,
         y: taskData.y,
         width: taskData.width,
         height: taskData.height,
       };
-
-      // let jsonData = JSON.stringify({'boundingBoxes': boundingBoxes, 'fps': fps});
 
       let jsonData = {
         boundingBox: boundingBox,
@@ -257,8 +197,42 @@ export default function JSONUploadDialog({
     }
   };
 
+  const getAnalysis = async () => {
+    setServerProcessing(true);
+    const videoURL = videoRef.current.src;
+
+    let blob = await fetch(videoURL).then(r => r.blob());
+
+    fetchAnalysisDetails(blob);
+  };
+
+  const handleAutoProcess = async () => {
+    await getAnalysis();
+  };
+
+  const handleFileChange = async event => {
+    const file = event.target.files[0];
+    if (file) {
+      if (file.name.endsWith('.json') || file.name.endsWith('.parse')) {
+        try {
+          const content = await file.text();
+          const jsonContent = JSON.parse(content);
+          if (validateJson(jsonContent)) {
+            setJSONContent(JSON.parse(content));
+            // setFileName(file.name);
+            setFileError('');
+          }
+        } catch {
+          setFileError('Error reading the file.');
+        }
+      } else {
+        setFileError('Please select a valid JSON file.');
+      }
+    }
+  };
+
   return (
-    <React.Fragment>
+    <>
       <Dialog open={dialogOpen} onClose={handleClose}>
         <DialogTitle>Task Setup</DialogTitle>
         <IconButton
@@ -319,6 +293,6 @@ export default function JSONUploadDialog({
           )}
         </DialogActions>
       </Dialog>
-    </React.Fragment>
+    </>
   );
 }

@@ -1,18 +1,16 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
-import Popup from './Popup';
 import ScatterPopup from './ScatterPopup';
 
 const ScatterPlot = ({ taskRecord, taskName }) => {
   const [plotlyData, setPlotlyData] = useState([]);
-  const [plotlyLayout, setPlotlyLayout] = useState({});
+  const [, setPlotlyLayout] = useState({});
   const [plotlyConfig, setPlotlyConfig] = useState({});
   const [tableView, setTableView] = useState(true);
 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
   useEffect(() => {
-    console.log(taskName);
     let data = [
       {
         type: 'scatterpolar',
@@ -46,12 +44,6 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
       font: {
         size: 4,
       },
-      // yaxis: {
-      //     automargin: true
-      // },
-      // xaxis: {
-      //     automargin: true
-      // }
       margin: {
         t: 25, //top margin
         l: 25, //left margin
@@ -74,11 +66,13 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
     setPlotlyData(data);
     setPlotlyLayout(layout);
     setPlotlyConfig(config);
-  }, []);
-
-  const handlePlotClick = () => {
-    setIsPopupVisible(true);
-  };
+  }, [
+    taskName,
+    taskRecord.fileName,
+    taskRecord.radar.A,
+    taskRecord.radar.B,
+    taskRecord.radar.labels,
+  ]);
 
   const closePopup = () => {
     setIsPopupVisible(false);
@@ -112,30 +106,6 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
 
   return (
     <div style={{ position: 'relative' }}>
-      {/* <button 
-      style={{
-        position: 'absolute',
-        top: '-20px', // Adjust as needed
-        right: '0px', // Adjust as needed
-        zIndex: 10 // Ensure it's above the plot
-      }}
-      className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded inline-flex items-center"
-      onClick={handlePlotClick}
-    >
-      <span>⤢</span> 
-    </button> */}
-      {/* <Plot
-            data={plotlyData}
-            layout={plotlyLayout}
-            config={plotlyConfig}
-            editable= {true}
-          /> */}
-      {/* <label class=" inline-flex items-center cursor-pointer top-0 right-2 absolute z-20">
-        <input type="checkbox" value="" class="sr-only peer" onClick={showTable} />
-        <div class="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-        <span class="ms-3 text-xs font-small text-gray-900 dark:text-gray-300">View Plot</span>
-      </label> */}
-
       <div className="flex p-4">
         <button
           className={`px-4 py-2 text-sm font-semibold rounded-md ${tableView ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-800'}`}
@@ -221,7 +191,6 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
         />
       )}
     </div>
-    // <div></div>
   );
 };
 

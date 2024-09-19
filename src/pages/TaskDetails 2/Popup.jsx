@@ -1,10 +1,9 @@
-import { red } from '@mui/material/colors';
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 
 const Popup = ({ taskRecord, videoRef, onClose }) => {
-  const [plotData, setPlotdata] = useState(taskRecord.linePlot.data);
-  const [plotTimes, setPlotTimes] = useState(taskRecord.linePlot.time);
+  const [plotData] = useState(taskRecord.linePlot.data);
+  const [plotTimes] = useState(taskRecord.linePlot.time);
 
   const [peaksData, setPeaksData] = useState(taskRecord.peaks.data);
   const [peaksTimes, setPeaksTimes] = useState(taskRecord.peaks.time);
@@ -20,11 +19,91 @@ const Popup = ({ taskRecord, videoRef, onClose }) => {
   const [selectedPoint, setSelectedPoint] = useState({});
 
   const [isKeyDown, setIsKeyDown] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
+  const [, setIsSaved] = useState(false);
 
   const plotRef = useRef(null);
 
   useEffect(() => {
+    const handleKeyUp = event => {
+      setIsKeyDown(false);
+      console.log('triggered handle keyUp');
+      switch (event.code) {
+        case 'KeyQ':
+          setIsAddNewPeakHigh(false);
+          break;
+        case 'KeyW':
+          setIsAddNewPeakLow(false);
+          break;
+        case 'KeyV':
+          isViewinPlot(false);
+          break;
+        default:
+          break;
+      }
+    };
+
+    const handleKeyDown = event => {
+      // Handle key press
+      // console.log('code-down', event.code)
+      if (!isKeyDown) {
+        setIsKeyDown(true);
+        console.log('triggered handle down with event = ');
+        console.log(event.code);
+        console.log(selectedPoint.name);
+        console.log(selectedPoint.idx);
+        console.log('isMarkup =  ' + isMarkUp);
+        switch (event.code) {
+          case 'KeyR':
+            if (isMarkUp) {
+              //find and remove the appropiate element in the array
+              if (selectedPoint.name === 'peak values') {
+                let newPeaksData = peaksData;
+                newPeaksData.splice(selectedPoint.idx, 1);
+                setPeaksData(newPeaksData);
+
+                let newPeaksTimes = peaksTimes;
+                newPeaksTimes.splice(selectedPoint.idx, 1);
+                setPeaksTimes(newPeaksTimes);
+              }
+              if (selectedPoint.name === 'valley values') {
+                let newValleysData = valleysData;
+                newValleysData.splice(selectedPoint.idx, 1);
+                setValleysData(newValleysData);
+
+                let newValleysTimes = valleysTimes;
+                newValleysTimes.splice(selectedPoint.idx, 1);
+                setValleysTimes(newValleysTimes);
+              }
+
+              // reset point
+              setSelectedPoint({});
+              setIsMarkUp(false);
+              setRevision(revision + 1);
+            }
+            break;
+          case 'Escape':
+            if (isMarkUp) {
+              // reset point
+              console.log('Entered inside escape case');
+              setSelectedPoint({});
+              setIsMarkUp(false);
+              setRevision(revision + 1);
+            }
+            break;
+          case 'KeyQ':
+            setIsAddNewPeakHigh(true);
+            break;
+          case 'KeyW':
+            setIsAddNewPeakLow(true);
+            break;
+          case 'KeyV':
+            setIsViewinPlot(true);
+            break;
+          default:
+            break;
+        }
+      }
+    };
     // Add event listeners when the component mounts
     console.log('rerendered the component');
     document.addEventListener('keydown', handleKeyDown);
@@ -40,7 +119,19 @@ const Popup = ({ taskRecord, videoRef, onClose }) => {
       document.removeEventListener('keyup', handleKeyUp);
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isMarkUp, selectedPoint, revision, isAddNewPeakHigh, isAddNewPeakLow]);
+  }, [
+    isMarkUp,
+    selectedPoint,
+    revision,
+    isAddNewPeakHigh,
+    isAddNewPeakLow,
+    isViewinPlot,
+    isKeyDown,
+    peaksData,
+    peaksTimes,
+    valleysData,
+    valleysTimes,
+  ]);
 
   const savePeaksAndValleys = () => {
     const waveData = {
@@ -77,84 +168,20 @@ const Popup = ({ taskRecord, videoRef, onClose }) => {
     }
   };
 
-  const handleKeyUp = event => {
-    setIsKeyDown(false);
-    console.log('triggered handle keyUp');
-    switch (event.code) {
-      case 'KeyQ':
-        setIsAddNewPeakHigh(false);
-        break;
-      case 'KeyW':
-        setIsAddNewPeakLow(false);
-        break;
-      case 'KeyV':
-        isViewinPlot(false);
-        break;
-      default:
-        break;
-    }
-  };
-
-  const handleKeyDown = event => {
-    // Handle key press
-    // console.log('code-down', event.code)
-    if (!isKeyDown) {
-      setIsKeyDown(true);
-      console.log('triggered handle down with event = ');
-      console.log(event.code);
-      console.log(selectedPoint.name);
-      console.log(selectedPoint.idx);
-      console.log('isMarkup =  ' + isMarkUp);
-      switch (event.code) {
-        case 'KeyR':
-          if (isMarkUp) {
-            //find and remove the appropiate element in the array
-            if (selectedPoint.name === 'peak values') {
-              let newPeaksData = peaksData;
-              newPeaksData.splice(selectedPoint.idx, 1);
-              setPeaksData(newPeaksData);
-
-              let newPeaksTimes = peaksTimes;
-              newPeaksTimes.splice(selectedPoint.idx, 1);
-              setPeaksTimes(newPeaksTimes);
-            }
-            if (selectedPoint.name === 'valley values') {
-              let newValleysData = valleysData;
-              newValleysData.splice(selectedPoint.idx, 1);
-              setValleysData(newValleysData);
-
-              let newValleysTimes = valleysTimes;
-              newValleysTimes.splice(selectedPoint.idx, 1);
-              setValleysTimes(newValleysTimes);
-            }
-
-            // reset point
-            setSelectedPoint({});
-            setIsMarkUp(false);
-            setRevision(revision + 1);
-          }
-          break;
-        case 'Escape':
-          if (isMarkUp) {
-            // reset point
-            console.log('Entered inside escape case');
-            setSelectedPoint({});
-            setIsMarkUp(false);
-            setRevision(revision + 1);
-          }
-          break;
-        case 'KeyQ':
-          setIsAddNewPeakHigh(true);
-          break;
-        case 'KeyW':
-          setIsAddNewPeakLow(true);
-          break;
-        case 'KeyV':
-          setIsViewinPlot(true);
-          break;
-        default:
-          break;
-      }
+  const handleSelectElementfromArray = (
+    arrayValues,
+    arrayTimes,
+    element,
+    name,
+  ) => {
+    if (!isMarkUp) {
+      //No mark up
+      setIsMarkUp(true);
+      console.log('did set markup as true in state ' + isMarkUp);
+      const idx = arrayTimes.indexOf(element);
+      const peak_data = [arrayValues[idx]];
+      const peak_time = [arrayTimes[idx]];
+      return { peak_data, peak_time, idx, name };
     }
   };
 
@@ -225,23 +252,6 @@ const Popup = ({ taskRecord, videoRef, onClose }) => {
     }
 
     console.log('Exiting handclePlotClick with isMarkUp = ' + isMarkUp);
-  };
-
-  const handleSelectElementfromArray = (
-    arrayValues,
-    arrayTimes,
-    element,
-    name,
-  ) => {
-    if (!isMarkUp) {
-      //No mark up
-      setIsMarkUp(true);
-      console.log('did set markup as true in state ' + isMarkUp);
-      const idx = arrayTimes.indexOf(element);
-      const peak_data = [arrayValues[idx]];
-      const peak_time = [arrayTimes[idx]];
-      return { peak_data, peak_time, idx, name };
-    }
   };
 
   const annotations = [

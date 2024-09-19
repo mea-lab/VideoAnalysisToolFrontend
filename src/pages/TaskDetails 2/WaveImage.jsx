@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from 'react';
-import Plot from 'react-plotly.js';
+import { useEffect, useState } from 'react';
 import Popup from './Popup';
 import './Popup.css';
 import WavePlotEditable from './WavePlotEditable';
@@ -11,9 +10,9 @@ const WaveImage = ({
   endTime,
   handleJSONUpload,
 }) => {
-  const [plotlyData, setPlotlyData] = useState([]);
-  const [plotlyLayout, setPlotlyLayout] = useState({});
-  const [plotlyConfig, setPlotlyConfig] = useState({});
+  const [, setPlotlyData] = useState([]);
+  const [, setPlotlyLayout] = useState({});
+  const [, setPlotlyConfig] = useState({});
 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
 
@@ -23,14 +22,6 @@ const WaveImage = ({
         y: taskRecord.linePlot.data,
         x: taskRecord.linePlot.time,
         mode: 'lines',
-
-        // modeBarButtonsToAdd: [{
-        //       name: 'custom button',
-        //       icon: Icons['home'],
-        //       click: function() {
-        //           console.log('hello world');
-        //       }
-        //   }]
       },
       {
         y: taskRecord.peaks.data,
@@ -104,7 +95,7 @@ const WaveImage = ({
     setPlotlyLayout(layout);
     setPlotlyConfig(config);
     setIsPopupVisible(isPopupVisible);
-  }, [taskRecord]);
+  }, [isPopupVisible, taskRecord]);
 
   const handlePlotClick = () => {
     setIsPopupVisible(true);
@@ -112,12 +103,6 @@ const WaveImage = ({
 
   const closePopup = () => {
     setIsPopupVisible(false);
-  };
-
-  const handleClickonPlot = data => {
-    console.log(data.points[0].x + ' , ' + data.points[0].y + ' ');
-    videoRef.current.currentTime = data.points[0].x;
-    videoRef.current.play();
   };
 
   return (
@@ -135,13 +120,6 @@ const WaveImage = ({
         <span>⤢</span> {/* Unicode character for maximize icon */}
       </button>
       <div id="graph-container">
-        {/* <Plot
-        data={plotlyData}
-        layout={plotlyLayout}
-        config={plotlyConfig}
-        editable= {true}
-        onClick={(data) => handleClickonPlot(data)}
-      /> */}
         {!isPopupVisible && (
           <WavePlotEditable
             taskRecord={taskRecord}

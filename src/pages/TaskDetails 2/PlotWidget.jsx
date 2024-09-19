@@ -1,5 +1,3 @@
-import { useEffect, useState } from 'react';
-
 import WaveImage from './WaveImage';
 import ScatterPlot from './ScatterPlot';
 
@@ -7,7 +5,7 @@ const PlotWidget = props => {
   return (
     <div className="overflow-scroll">
       <div className="pt-2 border-b border-gray-300">
-        {props.taskRecord.hasOwnProperty('linePlot') ? (
+        {props.taskRecord.linePlot != null && (
           <WaveImage
             taskRecord={props.taskRecord}
             videoRef={props.videoRef}
@@ -15,19 +13,15 @@ const PlotWidget = props => {
             endTime={props.endTime}
             handleJSONUpload={props.handleJSONUpload}
           />
-        ) : (
-          ''
         )}
       </div>
 
       <div className="pt-6">
-        {props.taskRecord.hasOwnProperty('radar') ? (
+        {props.taskRecord.radar != null && (
           <ScatterPlot
             taskRecord={props.taskRecord}
             taskName={props.taskName}
           />
-        ) : (
-          ''
         )}
       </div>
     </div>
