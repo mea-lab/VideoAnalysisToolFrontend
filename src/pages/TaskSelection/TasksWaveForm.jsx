@@ -227,7 +227,7 @@ const TasksWaveForm = ({
     <>
       <div
         className={
-          'flex flex-col gap-2 justify-center items-center w-full max-w-screen-lg mx-auto pt-4 px-2'
+          'flex flex-col gap-2 justify-center items-center w-full pt-4 px-2 max-w-screen-lg mx-auto'
         }
       >
         <div
