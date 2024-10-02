@@ -31,15 +31,25 @@ const TaskSelection = ({
   }, [videoReady]);
 
   const getBoundingRectangleForRegion = task => {
-    if ('width' in task && 'height' in task && 'x' in task && 'y' in task) {
+    if (
+      task.hasOwnProperty('width') &&
+      task.hasOwnProperty('height') &&
+      task.hasOwnProperty('x') &&
+      task.hasOwnProperty('y')
+    ) {
       return task;
     }
     const startFrame = Math.ceil(task.start * fps);
     const endFrame = Math.floor(task.end * fps);
-    let finalX = 20000,
+    let meanX = 0,
+      meanY = 0,
+      meanWidth = 0,
+      meanHeight = 0,
+      finalX = 20000,
       finalY = 20000,
       finalWidth = 0,
       finalHeight = 0;
+    let total = 0;
     let finalBottom = 0,
       finalRight = 0;
     const regionFrameBoundingBoxes = [];
@@ -70,7 +80,7 @@ const TaskSelection = ({
     // meanHeight = meanHeight / total;
 
     for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
-      if ('data' in regionFrameBoundingBox) {
+      if (regionFrameBoundingBox.hasOwnProperty('data')) {
         for (let box of regionFrameBoundingBox.data) {
           // if (!(Math.abs(meanX - box.x) > meanX / 2 || Math.abs(meanY - box.y) > meanY / 2
           //     || Math.abs(meanWidth - box.width) > meanWidth / 2 || Math.abs(meanHeight - box.height) > meanHeight / 2)) {
@@ -121,7 +131,7 @@ const TaskSelection = ({
     setTasks(newTasks);
   };
 
-  const onFPSCalculation = () => {
+  const onFPSCalculation = fps => {
     setVideoReady(true);
   };
 

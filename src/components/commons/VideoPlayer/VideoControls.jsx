@@ -1,19 +1,14 @@
 import { Pause, PlayArrow } from '@mui/icons-material';
-import { useEffect, useState, useCallback } from 'react';
-import { Button, Typography } from '@mui/material';
-import Forward5Icon from '@mui/icons-material/Forward5';
-import Replay5Icon from '@mui/icons-material/Replay5';
-import AddIcon from '@mui/icons-material/Add';
-import RemoveIcon from '@mui/icons-material/Remove';
+import React, { useEffect, useState } from 'react';
 
 const VideoControls = ({ videoRef, isPlaying, fps }) => {
-  const [flag] = useState(false);
+  const [flag, setFlag] = useState(false);
 
   useEffect(() => {
     console.log('Flag has changed to ' + flag);
   }, [flag]);
 
-  const checkVideoLoaded = useCallback(() => {
+  const checkVideoLoaded = () => {
     if (!videoRef.current) {
       console.error('Video reference not found.');
       return false;
@@ -41,59 +36,61 @@ const VideoControls = ({ videoRef, isPlaying, fps }) => {
       );
       return false;
     }
-  }, [videoRef]);
+  };
 
-  const playOrPause = useCallback(() => {
+  const playOrPause = () => {
     if (checkVideoLoaded()) {
       if (videoRef.current.paused) videoRef.current.play();
       else videoRef.current.pause();
     }
-  }, [checkVideoLoaded, videoRef]);
+  };
 
-  const changeVideoFrame = useCallback(
-    offset => {
-      const changeVideoTime = offset => {
-        if (checkVideoLoaded())
-          videoRef.current.currentTime = videoRef.current.currentTime + offset;
-      };
-      if (checkVideoLoaded()) {
-        const timeOffset = offset / fps;
-        changeVideoTime(timeOffset);
-      }
-    },
-    [checkVideoLoaded, fps, videoRef],
-  );
+  const changeVideoTime = offset => {
+    if (checkVideoLoaded())
+      videoRef.current.currentTime = videoRef.current.currentTime + offset;
+  };
+
+  const changeVideoFrame = offset => {
+    if (checkVideoLoaded()) {
+      const timeOffset = offset / fps;
+      changeVideoTime(timeOffset);
+    }
+  };
+
+  const handleKey = event => {
+    const video = videoRef.current;
+
+    if (!video) return;
+
+    switch (event.key) {
+      case 'ArrowRight':
+        // setFlag(true);
+        changeVideoFrame(1);
+        break;
+      case 'ArrowLeft':
+        changeVideoFrame(-1);
+        break;
+      case 'ArrowUp':
+        changeVideoFrame(5);
+        break;
+      case 'ArrowDown':
+        changeVideoFrame(-5);
+        break;
+
+      case ' ':
+        playOrPause();
+        event.preventDefault();
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleKeyUp = event => {
+    if (event.key === 'ArrowRight') setFlag(false);
+  };
 
   useEffect(() => {
-    const handleKey = event => {
-      const video = videoRef.current;
-
-      if (!video) return;
-
-      switch (event.key) {
-        case 'ArrowRight':
-          // setFlag(true);
-          changeVideoFrame(1);
-          break;
-        case 'ArrowLeft':
-          changeVideoFrame(-1);
-          break;
-        case 'ArrowUp':
-          changeVideoFrame(5);
-          break;
-        case 'ArrowDown':
-          changeVideoFrame(-5);
-          break;
-
-        case ' ':
-          playOrPause();
-          event.preventDefault();
-          break;
-        default:
-          break;
-      }
-    };
-
     window.addEventListener('keydown', handleKey);
     // window.addEventListener('keyup', handleKeyUp);
 
@@ -101,29 +98,43 @@ const VideoControls = ({ videoRef, isPlaying, fps }) => {
       window.removeEventListener('keydown', handleKey);
       // window.removeEventListener('keyup', handleKeyUp);
     };
-  }, [changeVideoFrame, playOrPause, videoRef]);
+  }, []);
 
   return (
     <div className={'flex gap-4 text-2xl items-center'}>
-      <Button>
-        <Replay5Icon onClick={() => changeVideoFrame(-5)} />
-      </Button>
-      <Button>
-        <RemoveIcon fontSize="small" onClick={() => changeVideoFrame(-1)} />
-        <Typography variant="body1">1</Typography>
-      </Button>
+      <button
+        onClick={() => {
+          changeVideoFrame(-5);
+        }}
+      >
+        -5
+      </button>
+      <button
+        onClick={() => {
+          changeVideoFrame(-1);
+        }}
+      >
+        -1
+      </button>
       {isPlaying ? (
         <Pause className="cursor-pointer" onClick={playOrPause} />
       ) : (
         <PlayArrow className="cursor-pointer" onClick={playOrPause} />
       )}
-      <Button>
-        <AddIcon fontSize="small" onClick={() => changeVideoFrame(1)} />
-        <Typography variant="body1">1</Typography>
-      </Button>
-      <Button>
-        <Forward5Icon onClick={() => changeVideoFrame(5)} />
-      </Button>
+      <button
+        onClick={() => {
+          changeVideoFrame(1);
+        }}
+      >
+        +1
+      </button>
+      <button
+        onClick={() => {
+          changeVideoFrame(5);
+        }}
+      >
+        +5
+      </button>
     </div>
   );
 };

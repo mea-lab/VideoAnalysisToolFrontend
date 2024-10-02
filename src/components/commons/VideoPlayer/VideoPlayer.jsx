@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import VideoControls from './VideoControls';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
@@ -7,6 +7,7 @@ import { CanvasDrawer } from './CanvasDrawer';
 const VideoPlayer = ({
   videoRef,
   fps,
+  fpsCallback,
   boundingBoxes,
   persons,
   setVideoReady,
@@ -116,30 +117,26 @@ const VideoPlayer = ({
     }
   }, [fps]);
 
+  const updateFrameNumber = () => {
+    if (videoRef && videoRef.current) {
+      const currentTime = videoRef.current.currentTime;
+      const frameNumber = Math.round(fps * currentTime);
+
+      setCurrentFrame(frameNumber);
+    }
+  };
+
   useEffect(() => {}, [currentFrame]);
 
   useEffect(() => {
-    const updateFrameNumber = () => {
-      if (videoRef && videoRef.current) {
-        const currentTime = videoRef.current.currentTime;
-        const frameNumber = Math.round(fps * currentTime);
-
-        setCurrentFrame(frameNumber);
-      }
-    };
-    // Store the ref value in a variable
-    const videoElement = videoRef?.current;
-
-    if (videoElement) {
-      videoElement.addEventListener('timeupdate', updateFrameNumber);
-    }
+    if (videoRef && videoRef.current)
+      videoRef.current.addEventListener('timeupdate', updateFrameNumber);
 
     return () => {
-      if (videoElement) {
-        videoElement.removeEventListener('timeupdate', updateFrameNumber);
-      }
+      if (videoRef && videoRef.current)
+        videoRef.current.removeEventListener('timeupdate', updateFrameNumber);
     };
-  }, [fps, videoRef]);
+  });
 
   const handleVideoUpload = event => {
     const file = event.target.files[0];
@@ -243,7 +240,7 @@ const VideoPlayer = ({
             className="opacity-0"
             onChange={handleVideoUpload}
           />
-          <div className="flex justify-center p-4 rounded border border-dashed border-gray-400 hover:border-gray-500 transition-all">
+          <div className="p-4 rounded border border-dashed border-gray-400 hover:border-gray-500 transition-all">
             <Button variant="contained" component="span" title="Upload a video">
               Upload Video
             </Button>
