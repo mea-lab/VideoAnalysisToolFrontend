@@ -240,7 +240,7 @@ const VideoPlayer = ({
             className="opacity-0"
             onChange={handleVideoUpload}
           />
-          <div className="p-4 rounded border border-dashed border-gray-400 hover:border-gray-500 transition-all">
+          <div className="flex justify-center p-4 rounded border border-dashed border-gray-400 hover:border-gray-500 transition-all">
             <Button variant="contained" component="span" title="Upload a video">
               Upload Video
             </Button>
