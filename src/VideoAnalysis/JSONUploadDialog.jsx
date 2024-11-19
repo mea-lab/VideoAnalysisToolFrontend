@@ -169,24 +169,24 @@ export default function JSONUploadDialog({
           <CloseIcon />
         </IconButton>
         <DialogContent>
-          <DialogContentText>
-            {!serverProcessing && (
-              <>
-                Upload JSON manually containing the bounding boxes for the video
-                or click on auto-parse to let the serve handle it.
-              </>
-            )}
-            {serverProcessing && (
-              <div
-                className={
-                  'flex flex-col w-full h-full justify-center items-center gap-10'
-                }
-              >
-                <div>Server processing the request</div>
-                <CircularProgress size={80} />
-              </div>
-            )}
-          </DialogContentText>
+          {!serverProcessing && (
+            <>
+              <DialogContentText>
+                Upload JSON manually containing the bounding boxes for the video or click
+                on auto-parse to let the server handle it.
+              </DialogContentText>
+            </>
+          )}
+          {serverProcessing && (
+            <div
+              className={
+                'flex flex-col w-full h-full justify-center items-center gap-10'
+              }
+            >
+              <div>Server processing the request</div>
+              <CircularProgress size={80} />
+            </div>
+          )}
           {!serverProcessing && (
             <div>
               <Input
@@ -200,6 +200,7 @@ export default function JSONUploadDialog({
             </div>
           )}
         </DialogContent>
+
         <DialogActions>
           <Button
             onClick={handleJSONProcess}

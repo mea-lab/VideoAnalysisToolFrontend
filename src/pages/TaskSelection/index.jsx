@@ -1,34 +1,40 @@
+//src/pages/TaskSelection/index.jsx
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import HeaderSection from './HeaderSection';
 import { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import TaskSelectionTab from './TaskSelectionTab';
 import TasksWaveForm from './TasksWaveForm';
-import TaskDetails from '../TaskDetails 2';
+import TaskDetails from '../TaskDetails';
+import { Navigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { VideoContext } from '../../contexts/VideoContext';
 
-const TaskSelection = ({
-  videoURL,
-  setVideoURL,
-  fileName,
-  setFileName,
-  setVideoData,
-  boundingBoxes,
-  setBoundingBoxes,
-  setElement,
-  fps,
-  setFPS,
-}) => {
-  const videoRef = useRef(null);
-  const [videoReady, setVideoReady] = useState(false);
-  // const [fps, setFPS] = useState(60);
+const TaskSelection = () => {
+  //Consume context instead of passing them as props 
+  const {
+    videoData,
+    setVideoData,
+    fileName,
+    setFileName,
+    boundingBoxes,
+    setBoundingBoxes,
+    fps,
+    setFPS,
+    taskBoxes,
+    setTaskBoxes,
+  } = useContext(VideoContext);
+
+  const navigate = useNavigate();
   const [tasks, setTasks] = useState([]);
-  const [taskBoxes, setTaskBoxes] = useState([]);
   const [tasksReady, setTasksReady] = useState(false);
 
-  useEffect(() => {
-    if (!videoReady) {
-      // setFPS(60);
-    }
-  }, [videoReady]);
+  //These must be created and handled by each page individually as video element dismounts on page change
+  //All modified by VideoPlayer but need to be utilized by below components
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoURL, setVideoURL] = useState(''); 
+  const videoPlayerRef = useRef(null);
+  
 
   const getBoundingRectangleForRegion = task => {
     if (
@@ -62,28 +68,9 @@ const TaskSelection = ({
         regionFrameBoundingBoxes.push(boundingBox);
     }
 
-    // for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
-    //     if (regionFrameBoundingBox.hasOwnProperty('data')) {
-    //         for (let box of regionFrameBoundingBox.data) {
-    //             meanX = meanX + box.x;
-    //             meanY = meanY + box.y;
-    //             meanWidth = meanWidth + box.width;
-    //             meanHeight = meanHeight + box.height;
-    //             total += 1;
-    //         }
-    //     }
-    // }
-
-    // meanX = meanX / total;
-    // meanY = meanY / total;
-    // meanWidth = meanWidth / total;
-    // meanHeight = meanHeight / total;
-
     for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
       if (regionFrameBoundingBox.hasOwnProperty('data')) {
         for (let box of regionFrameBoundingBox.data) {
-          // if (!(Math.abs(meanX - box.x) > meanX / 2 || Math.abs(meanY - box.y) > meanY / 2
-          //     || Math.abs(meanWidth - box.width) > meanWidth / 2 || Math.abs(meanHeight - box.height) > meanHeight / 2)) {
           finalX = finalX > box.x ? box.x : finalX;
           finalY = finalY > box.y ? box.y : finalY;
           finalWidth = finalWidth < box.width ? box.width : finalWidth;
@@ -136,7 +123,8 @@ const TaskSelection = ({
   };
 
   const moveToNextScreen = () => {
-    setElement(TaskDetails, { taskBoxes });
+    setTaskBoxes(taskBoxes);
+    navigate("/taskdetails");
   };
 
   const resetTaskSelection = () => {
@@ -149,21 +137,22 @@ const TaskSelection = ({
       <div className="flex flex-1 flex-row max-h-screen flex-wrap">
         <div className={'flex w-1/2 max-h-screen bg-red-600'}>
           <VideoPlayer
+            videoURL={videoURL}
+            setVideoURL={setVideoURL}
             screen={'tasks'}
             taskBoxes={taskBoxes}
-            videoRef={videoRef}
+            videoRef={videoPlayerRef}
             boundingBoxes={boundingBoxes}
             fps={fps}
             persons={[]}
             fpsCallback={onFPSCalculation}
             setVideoReady={setVideoReady}
             // boxesReady={boxesReady}
-            videoURL={videoURL}
             setVideoData={setVideoData}
             fileName={fileName}
             setFileName={setFileName}
-            setVideoURL={setVideoURL}
             setTaskBoxes={setTaskBoxes}
+            videoData={videoData}
           />
         </div>
         <div className={'flex flex-col min-h-[100vh] w-1/2 '}>
@@ -178,7 +167,7 @@ const TaskSelection = ({
           />
           <TasksWaveForm
             setTasks={setTasks}
-            videoRef={videoRef}
+            videoRef={videoPlayerRef}
             tasks={tasks}
             isVideoReady={videoReady}
             onNewTask={onNewTask}
@@ -196,7 +185,7 @@ const TaskSelection = ({
             onTaskChange={onTaskChange}
             onTaskDelete={onTaskDelete}
             isVideoReady={videoReady}
-            videoRef={videoRef}
+            videoRef={videoPlayerRef}
             taskReady={tasksReady}
             setTasksReady={setTasksReady}
             resetTaskSelection={resetTaskSelection}

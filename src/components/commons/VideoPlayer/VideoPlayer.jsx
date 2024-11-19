@@ -3,16 +3,19 @@ import VideoControls from './VideoControls';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import { CanvasDrawer } from './CanvasDrawer';
+import { useContext } from 'react';
+import { VideoContext } from '../../../contexts/VideoContext';
 
 const VideoPlayer = ({
+  videoURL,
+  setVideoURL,
+  videoData,
   videoRef,
   fps,
   fpsCallback,
   boundingBoxes,
   persons,
   setVideoReady,
-  videoURL,
-  setVideoURL,
   fileName,
   setFileName,
   setVideoData,
@@ -30,6 +33,19 @@ const VideoPlayer = ({
   const canvasRef = useRef(null);
   const canvasDrawerInstance = useRef(null);
   const [currentFrame, setCurrentFrame] = useState(0);
+  
+
+  useEffect(() => {
+    console.log("VideoPlayer Video Data:", videoData)
+    if (videoData && !videoURL) {
+      console.log("Running video player useEffect.");
+  
+      setVideoData(videoData)
+      setFileName(videoData.name);
+      const videoUrl = URL.createObjectURL(videoData);
+      setVideoURL(videoUrl);
+    }
+  }, [videoData, videoURL]);
 
   useEffect(() => {
     if (canvasRef.current && !canvasDrawerInstance.current) {
@@ -126,8 +142,6 @@ const VideoPlayer = ({
     }
   };
 
-  useEffect(() => {}, [currentFrame]);
-
   useEffect(() => {
     if (videoRef && videoRef.current)
       videoRef.current.addEventListener('timeupdate', updateFrameNumber);
@@ -141,7 +155,8 @@ const VideoPlayer = ({
   const handleVideoUpload = event => {
     const file = event.target.files[0];
     if (file) {
-      setVideoData(file);
+      setVideoData(file)
+      console.log("Uploaded Video File",file)
       setFileName(file.name);
       const videoUrl = URL.createObjectURL(file);
       setVideoURL(videoUrl);
@@ -221,12 +236,14 @@ const VideoPlayer = ({
     }
   };
 
+  //Check if NaN before returning a value
   const getTotalFrameCount = () => {
     if (videoRef && videoRef.current) {
       const duration = videoRef.current.duration;
-      return Math.round(fps * duration);
+      if (!isNaN(duration)) {
+        return Math.round(fps * duration);
+      }
     }
-
     return 0;
   };
 
@@ -266,7 +283,7 @@ const VideoPlayer = ({
               </div>
 
               <div className="flex items-center">
-                <input className="w-1/4" type="number" value={currentFrame} />
+                <input className="w-1/4" type="number" value={currentFrame} readOnly/>
                 <div>/</div>
                 <div>{getTotalFrameCount()}</div>
               </div>

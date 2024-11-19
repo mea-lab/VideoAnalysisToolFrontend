@@ -76,12 +76,12 @@ const SubjectSelectionTab = ({
   }, [boundingBoxes]);
 
   useEffect(() => {
-    if (persons.length === 1) {
-      let subjectMarkedPersons = persons.map(person => ({
+    if (persons.length === 1 && !persons[0].isSubject) {
+      const updatedPersons = persons.map(person => ({
         ...person,
         isSubject: true,
       }));
-      setPersons(subjectMarkedPersons);
+      setPersons(updatedPersons);
     }
   }, [persons]);
 

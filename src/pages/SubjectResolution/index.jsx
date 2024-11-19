@@ -1,62 +1,73 @@
+// src/pages/SubjectResolution/index.jsx
 import HeaderSection from './HeaderSection';
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import SubjectSelectionTab from './SubjectSelectionTab';
 import SubjectsWaveForm from './SubjectsWaveForm';
-import { useEffect, useRef, useState } from 'react';
-import TaskSelection from '../TaskSelection';
+import { useEffect, useState, useContext, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { VideoContext } from '../../contexts/VideoContext';
 
-const SubjectResolution = ({
-  setElement,
-  videoURL,
-  setVideoURL,
-  setVideoData,
-  fileName,
-  setFileName,
-  boundingBoxes,
-  setBoundingBoxes,
-  fps,
-  setFPS,
-}) => {
-  const videoRef = useRef(null);
+const SubjectResolution = () => {
+  const {
+    videoData,
+    setVideoData,
+    fileName,
+    setFileName,
+    boundingBoxes,
+    setBoundingBoxes,
+    fps,
+    setFPS,
+  } = useContext(VideoContext);
+
   const [persons, setPersons] = useState([]);
-  const [videoReady, setVideoReady] = useState(false);
   const [boxesReady, setBoxesReady] = useState(false);
+
+  //These must be created and handled by each page individually as video element dismounts on page change
+  const [videoReady, setVideoReady] = useState(false);
+  const [videoURL, setVideoURL] = useState('');
+  const videoPlayerRef = useRef(null);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!videoReady) {
       setPersons([]);
       setBoundingBoxes([]);
     }
-  }, [videoReady]);
+  }, [videoReady, setBoundingBoxes]);
 
-  const checkIfSubject = id => {
-    let person = persons.find(person => person.id === id);
+  const checkIfSubject = (id) => {
+    const person = persons.find((person) => person.id === id);
     return person && person.isSubject;
   };
 
   const updateFinalBoundingBoxes = () => {
-    const newBoundingBoxes = boundingBoxes.map(frameBoxes => {
-      const boxes = frameBoxes.data.filter(box => checkIfSubject(box.id));
+    const newBoundingBoxes = boundingBoxes.map((frameBoxes) => {
+      const boxes = frameBoxes.data.filter((box) => checkIfSubject(box.id));
       return { ...frameBoxes, data: boxes };
     });
     setBoundingBoxes(newBoundingBoxes);
   };
+
   const moveToNextScreen = () => {
     updateFinalBoundingBoxes();
-    setElement(TaskSelection);
+    navigate('/tasks');
   };
-  const onFPSCalculation = fps => {
+
+  const onFPSCalculation = (calculatedFPS) => {
     setVideoReady(true);
+    setFPS(calculatedFPS);
   };
 
   return (
     <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
       <div className="flex flex-1 flex-row flex-wrap">
-        <div className={'flex w-1/2 max-h-screen  bg-red-600'}>
+        <div className="flex w-1/2 max-h-screen bg-red-600">
           <VideoPlayer
-            screen={'subject_resolution'}
+            videoData={videoData}
+            screen="subject_resolution"
             taskBoxes={[]}
-            videoRef={videoRef}
+            videoRef={videoPlayerRef} // Pass local ref
             boundingBoxes={boundingBoxes}
             fps={fps}
             persons={persons}
@@ -70,7 +81,7 @@ const SubjectResolution = ({
           />
         </div>
 
-        <div className={'flex flex-col gap-4 min-h-[100vh] w-1/2 '}>
+        <div className="flex flex-col gap-4 min-h-[100vh] w-1/2">
           <HeaderSection
             title="Subject Selection"
             isVideoReady={videoReady}
@@ -86,7 +97,7 @@ const SubjectResolution = ({
             setBoundingBoxes={setBoundingBoxes}
             fps={fps}
             setFPS={setFPS}
-            videoRef={videoRef}
+            videoRef={videoPlayerRef}
             persons={persons}
             setPersons={setPersons}
             isVideoReady={videoReady}
@@ -94,7 +105,8 @@ const SubjectResolution = ({
             setBoxesReady={setBoxesReady}
           />
           <SubjectsWaveForm
-            videoRef={videoRef}
+            videoData={videoData}
+            videoRef={videoPlayerRef}
             persons={persons}
             isVideoReady={videoReady}
             boxesReady={boxesReady}

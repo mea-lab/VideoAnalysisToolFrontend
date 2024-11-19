@@ -1,3 +1,4 @@
+//src/pages/SubjectResolution/SubjectsWaveForm.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
@@ -13,8 +14,8 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
-    if (!isVideoReady) return;
-
+    if (!videoRef.current) return;
+    
     if (waveSurfer.current === null)
       waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
     else {
@@ -54,14 +55,6 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
       });
     }
   }, [boxesReady, persons]);
-
-  // useEffect(() => {
-  //     if ( isVideoReady) {
-  //         let pxPerSec = (680/videoRef.current?.duration) * zoomLevel;
-  //         if (waveSurfer.current !== null && !waveLoading)
-  //             waveSurfer.current.zoom(pxPerSec);
-  //     }
-  // }, [zoomLevel, isVideoReady])
 
   const onZoomChange = zoomLevel => {
     if (isVideoReady) {

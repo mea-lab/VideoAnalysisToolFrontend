@@ -1,4 +1,6 @@
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
+import { useContext } from 'react';
+import { VideoContext } from '../../contexts/VideoContext';
 import React, { useEffect, useRef, useState } from 'react';
 import HeaderSection from './HeaderSection';
 import Button from '@mui/material/Button';
@@ -23,23 +25,24 @@ function useDebounce(callback, delay) {
   return debouncedFunction;
 }
 
-const TaskDetails = ({
-  videoURL,
-  setVideoURL,
-  fileName,
-  setFileName,
-  setVideoData,
-  boundingBoxes,
-  setBoundingBoxes,
-  setElement,
-  taskBoxes,
-  fps,
-  setFPS,
-}) => {
-  const videoRef = useRef(null);
+const TaskDetails = () => {
+  const {
+    videoData,
+    setVideoData,
+    fileName,
+    setFileName,
+    boundingBoxes,
+    setBoundingBoxes,
+    fps,
+    setFPS,
+    taskBoxes,
+    setTaskBoxes,
+  } = useContext(VideoContext);
+
   const [videoReady, setVideoReady] = useState(false);
-  // const [tasks, setTasks] = useState([]);
-  // const [taskBoxes, setTaskBoxes] = useState([]);
+  const [videoURL, setVideoURL] = useState(''); 
+  const videoRef = useRef(null);
+
   const [dataReady, setDataReady] = useState(false);
   const [openJsonUpload, setOpenJsonUpload] = useState(false);
   const [selectedTask, setSelectedTask] = useState(0);
@@ -55,9 +58,18 @@ const TaskDetails = ({
   const tasks = taskBoxes;
 
   useEffect(() => {
+
+    if(!videoReady) {
+      return
+    }
+
+    console.log("Tasks:", tasks)
     const taskData = tasks[selectedTask];
     const startTime = taskData.start;
+
+    console.log("Setting task name to...", tasks[selectedTask].name)
     setSelectedTaskName(tasks[selectedTask].name);
+
 
     videoRef.current.currentTime = startTime;
 
@@ -67,7 +79,7 @@ const TaskDetails = ({
         videoRef.current.currentTime = startTime;
       }
     };
-  }, [selectedTask]);
+  }, [selectedTask,videoReady]);
 
   const onFPSCalculation = fps => {
     setVideoReady(true);
@@ -175,6 +187,7 @@ const TaskDetails = ({
   };
 
   const DownloadCurrentTask = () => {
+    console.log("Downloading task name", selectedTaskName)
     const fileData = taskToPlotMap[selectedTaskName];
 
     const downloadContent = {
@@ -200,6 +213,7 @@ const TaskDetails = ({
 
     const link = document.createElement('a');
     link.href = href;
+    console.log("Selected Task Name",selectedTaskName);
     link.download =
       fileName.replace(/\.[^/.]+$/, '') + '_' + selectedTaskName + '.json';
     document.body.appendChild(link);
@@ -272,6 +286,7 @@ const TaskDetails = ({
       <div className="flex flex-1 flex-row max-h-screen">
         <div className={'flex w-1/2 max-h-screen bg-red-600 overflow-hidden'}>
           <VideoPlayer
+            videoData={videoData}
             screen={'taskDetails'}
             taskBoxes={taskBoxes}
             videoRef={videoRef}
