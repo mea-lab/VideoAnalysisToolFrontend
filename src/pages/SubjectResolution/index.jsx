@@ -1,4 +1,4 @@
-// src/pages/SubjectResolution/index.jsx
+//src/pages/SubjectResolution/index.jsx
 import HeaderSection from './HeaderSection';
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import SubjectSelectionTab from './SubjectSelectionTab';
@@ -9,32 +9,32 @@ import { VideoContext } from '../../contexts/VideoContext';
 
 const SubjectResolution = () => {
   const {
+    videoReady,
+    setVideoReady,
     videoData,
     setVideoData,
+    videoURL,
+    setVideoURL,
+    videoRef,
     fileName,
     setFileName,
     boundingBoxes,
     setBoundingBoxes,
     fps,
     setFPS,
+    taskBoxes,
+    setTaskBoxes,
+    tasks,
+    setTasks,
+    tasksReady,
+    setTasksReady,
+    persons,
+    setPersons,
+    boxesReady,
+    setBoxesReady,
   } = useContext(VideoContext);
 
-  const [persons, setPersons] = useState([]);
-  const [boxesReady, setBoxesReady] = useState(false);
-
-  //These must be created and handled by each page individually as video element dismounts on page change
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoURL, setVideoURL] = useState('');
-  const videoPlayerRef = useRef(null);
-
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!videoReady) {
-      setPersons([]);
-      setBoundingBoxes([]);
-    }
-  }, [videoReady, setBoundingBoxes]);
 
   const checkIfSubject = (id) => {
     const person = persons.find((person) => person.id === id);
@@ -54,10 +54,6 @@ const SubjectResolution = () => {
     navigate('/tasks');
   };
 
-  const onFPSCalculation = (calculatedFPS) => {
-    setVideoReady(true);
-    setFPS(calculatedFPS);
-  };
 
   return (
     <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
@@ -66,12 +62,11 @@ const SubjectResolution = () => {
           <VideoPlayer
             videoData={videoData}
             screen="subject_resolution"
-            taskBoxes={[]}
-            videoRef={videoPlayerRef} // Pass local ref
+            taskBoxes={taskBoxes}
+            videoRef={videoRef}
             boundingBoxes={boundingBoxes}
             fps={fps}
             persons={persons}
-            fpsCallback={onFPSCalculation}
             setVideoReady={setVideoReady}
             videoURL={videoURL}
             setVideoURL={setVideoURL}
@@ -97,7 +92,7 @@ const SubjectResolution = () => {
             setBoundingBoxes={setBoundingBoxes}
             fps={fps}
             setFPS={setFPS}
-            videoRef={videoPlayerRef}
+            videoRef={videoRef}
             persons={persons}
             setPersons={setPersons}
             isVideoReady={videoReady}
@@ -106,7 +101,7 @@ const SubjectResolution = () => {
           />
           <SubjectsWaveForm
             videoData={videoData}
-            videoRef={videoPlayerRef}
+            videoRef={videoRef}
             persons={persons}
             isVideoReady={videoReady}
             boxesReady={boxesReady}

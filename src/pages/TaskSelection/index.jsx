@@ -23,11 +23,13 @@ const TaskSelection = () => {
     setFPS,
     taskBoxes,
     setTaskBoxes,
+    tasks,
+    setTasks,
+    tasksReady,
+    setTasksReady,
   } = useContext(VideoContext);
 
   const navigate = useNavigate();
-  const [tasks, setTasks] = useState([]);
-  const [tasksReady, setTasksReady] = useState(false);
 
   //These must be created and handled by each page individually as video element dismounts on page change
   //All modified by VideoPlayer but need to be utilized by below components

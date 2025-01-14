@@ -1,3 +1,4 @@
+//src/components/commons/VideoPlayer/Resizer.jsx
 import React from 'react';
 
 const Resizer = ({ videoWidth, setVideoWidth }) => {

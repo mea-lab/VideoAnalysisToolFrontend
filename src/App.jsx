@@ -1,6 +1,7 @@
 // src/App.jsx
 import VideoAnalysis from './VideoAnalysis/VideoAnalysis';
 import SubjectResolution from './pages/SubjectResolution';
+import HomePage from './pages/HomePage';
 import { Routes, Route } from 'react-router-dom';
 import TaskSelection from './pages/TaskSelection';
 import TaskDetails from './pages/TaskDetails';
@@ -12,7 +13,7 @@ function App() {
   return (
     <VideoProvider>
       <Routes>
-        <Route path="/" element={<SubjectResolution />} />
+        <Route path="/" element={<HomePage />} />
         <Route path="/subjects" element={<SubjectResolution />} />
         <Route path="/tasks" element={<TaskSelection />} />
         <Route path="/taskdetails" element={<TaskDetails />} />

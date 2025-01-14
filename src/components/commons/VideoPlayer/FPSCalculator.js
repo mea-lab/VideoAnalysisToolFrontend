@@ -1,3 +1,5 @@
+//src/components/commons/VideoPlayer/FPSCalculator.js
+
 export function setupFPSCalculation(videoElement, afterCalcFunc) {
   let frameTimes = [];
   let totalFramesToMeasure = 600;

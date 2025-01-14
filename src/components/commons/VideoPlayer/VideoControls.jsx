@@ -1,3 +1,4 @@
+//src/components/commons/VideoPlayer/VideoControls.jsx
 import { Pause, PlayArrow } from '@mui/icons-material';
 import React, { useEffect, useState } from 'react';
 

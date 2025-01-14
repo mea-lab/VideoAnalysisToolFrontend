@@ -38,6 +38,9 @@ const TasksWaveForm = ({
     });
     waveSurfer.current.on('ready', () => {
       setWaveLoading(false);
+      if(tasks) {
+        updateRegions();
+      }
     });
 
     waveSurferRegions.current = waveSurfer.current.registerPlugin(

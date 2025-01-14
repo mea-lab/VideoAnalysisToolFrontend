@@ -1,3 +1,4 @@
+//src/components/commons/VideoPlayer/CanvasDrawer.jsx
 import { rgb } from 'plotly.js/src/components/color';
 
 export class CanvasDrawer {

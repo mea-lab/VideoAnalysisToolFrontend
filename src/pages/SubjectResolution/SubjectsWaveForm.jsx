@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
-// import {CircularProgress} from "@mui/material";
 import CircularProgressWithLabel from './CircularProgressWithLabel';
 import { Slider } from '@mui/material';
 
@@ -14,15 +13,17 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
-    if (!videoRef.current) return;
-    
-    if (waveSurfer.current === null)
-      waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
-    else {
+    if (!videoRef.current || videoRef == null) return;
+  
+    if (waveSurfer.current) {
       waveSurfer.current.destroy();
-      waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
     }
-
+  
+    waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
+    console.log('Wavesurfer created');
+  
+    waveSurfer.current.load(videoRef.current);
+  
     waveSurfer.current.on('loading', percent => {
       setLoadPercent(percent);
       setWaveLoading(true);
@@ -30,12 +31,10 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
     waveSurfer.current.on('ready', () => {
       setWaveLoading(false);
     });
-
-    console.log('Wavesurfer created');
-
-    // Cleanup on unmount
+  
+    // Cleanup
     return () => waveSurfer.current?.destroy();
-  }, [isVideoReady]);
+  }, [isVideoReady, videoRef]);
 
   useEffect(() => {
     if (!boxesReady || waveSurfer.current === null) return;
