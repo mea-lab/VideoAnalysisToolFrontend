@@ -13,7 +13,7 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
-    if (!videoRef.current || videoRef == null) return;
+    if (!isVideoReady || !videoRef.current || videoRef.current.readyState < 1) return;
   
     if (waveSurfer.current) {
       waveSurfer.current.destroy();

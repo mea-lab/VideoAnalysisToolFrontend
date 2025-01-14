@@ -32,18 +32,6 @@ const VideoPlayer = ({
     const canvasRef = useRef(null);
     const canvasDrawerInstance = useRef(null);
     const [currentFrame, setCurrentFrame] = useState(0);
-    
-
-
-    useEffect(() => {
-        if (!videoData) return;
-        const url = URL.createObjectURL(videoData);
-        setVideoURL(url);
-      
-        return () => {
-           URL.revokeObjectURL(url);
-        };
-      }, [videoData]);
 
     useEffect(() => {
         if (canvasRef.current && !canvasDrawerInstance.current) {
