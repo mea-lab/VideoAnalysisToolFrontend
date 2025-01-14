@@ -40,10 +40,6 @@ const TaskSelection = () => {
 
   const navigate = useNavigate();
 
-  //These must be created and handled by each page individually as video element dismounts on page change
-  //All modified by VideoPlayer but need to be utilized by below components
-
-
   const getBoundingRectangleForRegion = task => {
     if (
       task.hasOwnProperty('width') &&
@@ -172,7 +168,7 @@ const TaskSelection = () => {
             taskBoxes={taskBoxes}
             moveToNextScreen={moveToNextScreen}
           />
-          {/* <TasksWaveForm
+          <TasksWaveForm
             setTasks={setTasks}
             videoRef={videoRef}
             tasks={tasks}
@@ -181,7 +177,7 @@ const TaskSelection = () => {
             onTaskChange={onTaskChange}
             tasksReady={tasksReady}
             setTasksReady={setTasksReady}
-          /> */}
+          />
           <TaskSelectionTab
             setTasks={setTasks}
             setTaskBoxes={setTaskBoxes}

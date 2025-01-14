@@ -34,6 +34,7 @@ const TaskSelectionTab = ({
 
     return newTasks;
   };
+  
   const jsonFileHandle = (jsonFileUploaded, jsonContent) => {
     if (jsonFileUploaded && jsonContent !== null) {
       if (jsonContent.hasOwnProperty('boundingBoxes')) {

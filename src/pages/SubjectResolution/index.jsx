@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { VideoContext } from '../../contexts/VideoContext';
 
 const SubjectResolution = () => {
-  const {
+  const { 
     videoReady,
     setVideoReady,
     videoData,

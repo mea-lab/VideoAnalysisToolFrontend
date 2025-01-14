@@ -23,7 +23,7 @@ const TasksWaveForm = ({
   const tasksRef = useRef(tasks);
 
   useEffect(() => {
-    if (!isVideoReady) return;
+    if (!isVideoReady || !videoRef?.current) return;
 
     if (waveSurfer.current === null)
       waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
@@ -38,9 +38,6 @@ const TasksWaveForm = ({
     });
     waveSurfer.current.on('ready', () => {
       setWaveLoading(false);
-      if(tasks) {
-        updateRegions();
-      }
     });
 
     waveSurferRegions.current = waveSurfer.current.registerPlugin(
@@ -166,6 +163,7 @@ const TasksWaveForm = ({
   };
 
   const getWaveSurferOptions = () => {
+    console.log("TASK WAVEFORM DURATRION", videoRef.current.duration);
     return {
       container: waveformRef.current,
       waveColor: 'violet',
@@ -255,7 +253,7 @@ const TasksWaveForm = ({
         </div>
         <div
           id="waveform"
-          className="flex w-full px-8 py-4 overflow-x-scroll overflow-y-hidden"
+          className="w-full px-8 py-4 overflow-x-scroll overflow-y-hidden"
           ref={waveformRef}
         />
       </div>

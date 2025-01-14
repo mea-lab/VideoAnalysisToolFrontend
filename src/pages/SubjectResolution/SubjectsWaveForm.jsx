@@ -6,25 +6,64 @@ import { Slider } from '@mui/material';
 
 const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
   const waveformRef = useRef(null);
-  const waveSurferRef = useRef(null);
+  const waveSurfer = useRef(null);
   const [waveLoading, setWaveLoading] = useState(false);
   const [loadPercent, setLoadPercent] = useState(0);
   const [zoomLevel, setZoomLevel] = useState(1);
 
   useEffect(() => {
-    if (!isVideoReady || !videoRef.current) return;
+    if (!isVideoReady || !videoRef?.current) return;
 
-    // 1) Destroy an old instance if it exists
-    if (waveSurferRef.current) {
-      waveSurferRef.current.setMediaElement(null);
-      waveSurferRef.current.destroy();
-      waveSurferRef.current = null;
+    if (waveSurfer.current === null) {
+      waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
+    } else {
+      waveSurfer.current.destroy();
+      waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
     }
 
-    // 2) Create a new WaveSurfer instance with the MediaElement backend
-    waveSurferRef.current = WaveSurfer.create({
+    waveSurfer.current.on('loading', percent => {
+      setLoadPercent(percent);
+      setWaveLoading(true);
+    });
+    waveSurfer.current.on('ready', () => {
+      setWaveLoading(false);
+    });
+
+    console.log('Wavesurfer created');
+
+    return () => waveSurfer.current?.destroy();
+  }, [isVideoReady]);
+
+  useEffect(() => {
+    if (!boxesReady || waveSurfer.current === null) return;
+
+    const wsRegions = waveSurfer.current.registerPlugin(RegionsPlugin.create());
+
+    if (persons) {
+      persons.forEach(subject => {
+        const timestamp = subject.timestamp;
+        wsRegions.addRegion({
+          start: timestamp,
+          end: timestamp + 0.001,
+          content: subject.id + '',
+          drag: false,
+          resize: false,
+        });
+      });
+    }
+  }, [boxesReady, persons]);
+
+  const onZoomChange = zoomLevel => {
+    if (isVideoReady) {
+      let pxPerSec = (680 / videoRef.current?.duration) * zoomLevel;
+      if (waveSurfer.current !== null && !waveLoading)
+        waveSurfer.current.zoom(pxPerSec);
+    }
+  };
+
+  const getWaveSurferOptions = () => {
+    return {
       container: waveformRef.current,
-      backend: 'MediaElement',
       waveColor: 'violet',
       progressColor: 'purple',
       cursorColor: 'navy',
@@ -32,63 +71,53 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady, boxesReady }) => {
       barRadius: 3,
       responsive: true,
       height: 100,
+      minPxPerSec: 680 / videoRef.current.duration,
+      autoScroll: true,
       normalize: true,
-    });
-
-    // 3) Attach your existing <video> element
-    console.log("LOGGING VIDEO STUFF")
-    console.log(videoRef.current)
-    console.log(videoRef)
-    videoRef.current.crossOrigin = 'anonymous'
-    waveSurferRef.current.setMediaElement(videoRef.current);
-
-    // 4) Now tell WaveSurfer to “load” (no URL needed, it will use the attached mediaElement).
-    waveSurferRef.current.load();
-
-    // 5) Hook up event listeners for debug/loading
-    waveSurferRef.current.on('error', (e) => {
-      console.error('WaveSurfer error:', e);
-    });
-
-    waveSurferRef.current.on('loading', (percent) => {
-      setWaveLoading(true);
-      setLoadPercent(percent);
-    });
-
-    waveSurferRef.current.on('ready', () => {
-      setWaveLoading(false);
-    });
-
-    // 6) Cleanup on unmount (or re-run) so your <video> is not destroyed
-    return () => {
-      if (waveSurferRef.current) {
-        // Detach the video element so WaveSurfer won’t destroy it
-        waveSurferRef.current.setMediaElement(null);
-        waveSurferRef.current.destroy();
-        waveSurferRef.current = null;
-      }
+      splitChannels: false,
+      media: videoRef.current,
+      backend: 'MediaElement',
+      mediaType: 'video',
     };
-  }, [isVideoReady, videoRef]);
-
-  /**
-   * Zoom
-   */
-  const handleZoomChange = (value) => {
-    setZoomLevel(value);
-    if (waveSurferRef.current && !waveLoading) {
-      const duration = videoRef.current?.duration;
-      if (duration) {
-        const pxPerSec = (680 / duration) * value;
-        waveSurferRef.current.zoom(pxPerSec);
-      }
-    }
   };
 
   return (
     <>
       <div
+        className={
+          'flex flex-col gap-2 justify-center items-center w-full border-t-2 pt-4 px-2'
+        }
+      >
+        {isVideoReady && (
+          <div className={'flex items-center justify-between w-full'}>
+            <div className={'w-full font-semibold text-center'}>
+              Waveform {waveLoading && 'loading ...'}
+            </div>
+
+            <Slider
+              orientation={'horizontal'}
+              min={1}
+              max={10}
+              step={0.1}
+              value={zoomLevel}
+              onChange={e => {
+                setZoomLevel(e.target.value);
+                onZoomChange(e.target.value);
+              }}
+              style={{ width: 200 }}
+              aria-label={'Zoom'}
+              valueLabelFormat={value => value + 'x'}
+            />
+          </div>
+        )}
+
+        {isVideoReady && waveLoading && (
+          <CircularProgressWithLabel value={loadPercent} size={80} />
+        )}
+      </div>
+      <div
         id="waveform"
-        className="flex w-full px-8 py-4 overflow-x-scroll overflow-y-hidden"
+        className="w-full px-8 py-4 overflow-x-scroll overflow-y-hidden"
         ref={waveformRef}
       />
     </>

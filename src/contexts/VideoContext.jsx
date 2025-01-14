@@ -21,9 +21,16 @@ export const VideoProvider = ({ children }) => {
         if(videoData != null) {
             console.log("Creating new URL")
             const newVideoURL = URL.createObjectURL(videoData);
-            console.log(newVideoURL);
             setFileName(videoData.name || 'video.mp4');
             setVideoURL(newVideoURL);
+        }
+
+        return () => {
+            console.log("Unmounting video context...")
+            URL.revokeObjectURL(videoURL);
+            setFileName("");
+            setVideoURL("");
+            setVideoReady(false);
         }
     },[videoData])
 
