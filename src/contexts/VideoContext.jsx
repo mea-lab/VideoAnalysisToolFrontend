@@ -19,10 +19,11 @@ export const VideoProvider = ({ children }) => {
 
     useEffect(() => {
         if(videoData != null) {
+            console.log("Creating new URL")
             const newVideoURL = URL.createObjectURL(videoData);
+            console.log(newVideoURL);
             setFileName(videoData.name || 'video.mp4');
             setVideoURL(newVideoURL);
-            setVideoReady(true);
         }
     },[videoData])
 

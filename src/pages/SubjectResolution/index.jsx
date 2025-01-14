@@ -101,6 +101,7 @@ const SubjectResolution = () => {
           />
           <SubjectsWaveForm
             videoData={videoData}
+            videoURL={videoURL}
             videoRef={videoRef}
             persons={persons}
             isVideoReady={videoReady}
