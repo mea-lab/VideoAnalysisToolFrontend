@@ -27,8 +27,13 @@ function useDebounce(callback, delay) {
 
 const TaskDetails = () => {
   const {
+    videoReady,
+    setVideoReady,
     videoData,
     setVideoData,
+    videoURL,
+    setVideoURL,
+    videoRef,
     fileName,
     setFileName,
     boundingBoxes,
@@ -37,11 +42,15 @@ const TaskDetails = () => {
     setFPS,
     taskBoxes,
     setTaskBoxes,
+    tasks,
+    setTasks,
+    tasksReady,
+    setTasksReady,
+    persons,
+    setPersons,
+    boxesReady,
+    setBoxesReady,
   } = useContext(VideoContext);
-
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoURL, setVideoURL] = useState(''); 
-  const videoRef = useRef(null);
 
   const [dataReady, setDataReady] = useState(false);
   const [openJsonUpload, setOpenJsonUpload] = useState(false);
@@ -54,8 +63,6 @@ const TaskDetails = () => {
   const [normalizationLandMarks, setNormalizationLandMarks] = useState([]);
   const [normalizationFactor, setNormalizationFactor] = useState();
   const [frameOffset, setFrameOffset] = useState(0);
-
-  const tasks = taskBoxes;
 
   useEffect(() => {
 
@@ -285,6 +292,8 @@ const TaskDetails = () => {
     <div className="flex flex-col min-h-screen max-h-screen">
       <div className="flex flex-1 flex-row max-h-screen">
         <div className={'flex w-1/2 max-h-screen bg-red-600 overflow-hidden'}>
+          <video src={videoURL} ref={videoRef}>
+          </video>
           <VideoPlayer
             videoData={videoData}
             screen={'taskDetails'}
@@ -295,7 +304,6 @@ const TaskDetails = () => {
             persons={[]}
             fpsCallback={onFPSCalculation}
             setVideoReady={setVideoReady}
-            // boxesReady={boxesReady}
             videoURL={videoURL}
             setVideoData={setVideoData}
             fileName={fileName}

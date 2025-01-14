@@ -17,28 +17,42 @@ export const VideoProvider = ({ children }) => {
     const [persons, setPersons] = useState([]);
     const [boxesReady, setBoxesReady] = useState(false);
 
-    useEffect (() => {
-        if(videoData != null) {
-            setFileName(videoData.name);
-            setVideoData(videoData)
-            const videoURL = URL.createObjectURL(videoData);
-            setVideoURL(videoURL)
-        } else {
+    // const resetVideoRef = () => {
+    //     if (videoRef.current) {
+    //         videoRef.current.pause();
+    //     }
+
+    //     if (videoURL) {
+    //         URL.revokeObjectURL(videoURL);
+    //     }
+
+    //     videoRef.current = null;
+    //     setVideoReady(false);
+    //     setVideoURL("");
+    //     setVideoData(null);
+    //     setFileName("");
+    //     setBoundingBoxes([]);
+    //     setTaskBoxes([]);
+    //     setTasks([]);
+    //     setPersons([]);
+    //     setBoxesReady(false);
+    // };
+
+    useEffect(() => {
+        if (!videoData) {
             videoRef.current = null;
             setFileName("");
             setVideoURL("");
             setVideoReady(false);
-            URL.revokeObjectURL(videoURL);
+            return;
         }
 
-        return () => {
-            videoRef.current = null;
-            setFileName("");
-            setVideoURL("");
-            setVideoReady(false);
-            URL.revokeObjectURL(videoURL);
-        }
-    }, [videoData])
+        console.log("Setting video information");
+        setFileName(videoData.name);
+
+        const newBlobURL = URL.createObjectURL(videoData);
+        setVideoURL(newBlobURL);
+    }, [videoData]);
 
     return (
         <VideoContext.Provider
@@ -68,11 +82,6 @@ export const VideoProvider = ({ children }) => {
                 setBoxesReady,
             }}
         >
-            <video
-                src={videoURL}
-                ref={videoRef}
-                style={{display: "none"}}
-            />
             {children}
         </VideoContext.Provider>
     );

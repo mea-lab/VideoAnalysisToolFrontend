@@ -13,8 +13,13 @@ import { VideoContext } from '../../contexts/VideoContext';
 const TaskSelection = () => {
   //Consume context instead of passing them as props 
   const {
+    videoReady,
+    setVideoReady,
     videoData,
     setVideoData,
+    videoURL,
+    setVideoURL,
+    videoRef,
     fileName,
     setFileName,
     boundingBoxes,
@@ -27,16 +32,17 @@ const TaskSelection = () => {
     setTasks,
     tasksReady,
     setTasksReady,
+    persons,
+    setPersons,
+    boxesReady,
+    setBoxesReady,
   } = useContext(VideoContext);
 
   const navigate = useNavigate();
 
   //These must be created and handled by each page individually as video element dismounts on page change
   //All modified by VideoPlayer but need to be utilized by below components
-  const [videoReady, setVideoReady] = useState(false);
-  const [videoURL, setVideoURL] = useState(''); 
-  const videoPlayerRef = useRef(null);
-  
+
 
   const getBoundingRectangleForRegion = task => {
     if (
@@ -143,13 +149,12 @@ const TaskSelection = () => {
             setVideoURL={setVideoURL}
             screen={'tasks'}
             taskBoxes={taskBoxes}
-            videoRef={videoPlayerRef}
+            videoRef={videoRef}
             boundingBoxes={boundingBoxes}
             fps={fps}
             persons={[]}
             fpsCallback={onFPSCalculation}
             setVideoReady={setVideoReady}
-            // boxesReady={boxesReady}
             setVideoData={setVideoData}
             fileName={fileName}
             setFileName={setFileName}
@@ -167,16 +172,16 @@ const TaskSelection = () => {
             taskBoxes={taskBoxes}
             moveToNextScreen={moveToNextScreen}
           />
-          <TasksWaveForm
+          {/* <TasksWaveForm
             setTasks={setTasks}
-            videoRef={videoPlayerRef}
+            videoRef={videoRef}
             tasks={tasks}
             isVideoReady={videoReady}
             onNewTask={onNewTask}
             onTaskChange={onTaskChange}
             tasksReady={tasksReady}
             setTasksReady={setTasksReady}
-          />
+          /> */}
           <TaskSelectionTab
             setTasks={setTasks}
             setTaskBoxes={setTaskBoxes}
@@ -187,7 +192,7 @@ const TaskSelection = () => {
             onTaskChange={onTaskChange}
             onTaskDelete={onTaskDelete}
             isVideoReady={videoReady}
-            videoRef={videoPlayerRef}
+            videoRef={videoRef}
             taskReady={tasksReady}
             setTasksReady={setTasksReady}
             resetTaskSelection={resetTaskSelection}
