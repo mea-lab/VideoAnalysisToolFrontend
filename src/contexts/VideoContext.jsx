@@ -1,6 +1,5 @@
 // src/contexts/VideoContext.jsx
 import React, { createContext, useState, useEffect, useRef } from 'react';
-import localforage from 'localforage';
 
 export const VideoContext = createContext();
 
@@ -19,43 +18,13 @@ export const VideoProvider = ({ children }) => {
     const [boxesReady, setBoxesReady] = useState(false);
 
     useEffect(() => {
-        localforage
-          .getItem('videoFile')
-          .then((savedFile) => {
-            if (savedFile) {
-              console.log('Found a saved video in localforage.');
-              // This will trigger the effect that listens for videoData changes
-              setVideoData(savedFile);
-            }
-          })
-          .catch((err) => {
-            console.error('Error fetching video from localforage:', err);
-          });
-    }, []);
-
-    useEffect(() => {
-        if (videoData) {
-          localforage
-            .setItem('videoFile', videoData)
-            .then(() => {
-              console.log('Saved video to localforage.');
-    
-              // Create a new object URL for the video
-              const newVideoURL = URL.createObjectURL(videoData);
-              setVideoURL(newVideoURL);
-              setFileName(videoData.name || 'video.mp4');
-              setVideoReady(true);
-            })
-            .catch((err) => {
-              console.error('Error storing video in localforage:', err);
-            });
-        } else {
-          // If we removed or reset the videoData, clear local states / URL
-          setVideoURL('');
-          setFileName('');
-          setVideoReady(false);
+        if(videoData != null) {
+            const newVideoURL = URL.createObjectURL(videoData);
+            setFileName(videoData.name || 'video.mp4');
+            setVideoURL(newVideoURL);
+            setVideoReady(true);
         }
-      }, [videoData]);
+    },[videoData])
 
     return (
         <VideoContext.Provider
