@@ -13,6 +13,7 @@ const HeaderSection = ({
   taskBoxes,
 }) => {
   const navigate = useNavigate();
+
   const downloadConfig = () => {
     const fileData = {
       fps: fps,
@@ -34,22 +35,48 @@ const HeaderSection = ({
     URL.revokeObjectURL(href);
   };
 
-  // const moveToTasksInfo = () => {
-  //     navigate("/tasksInfo");
-  // }
-
   return (
     <div
-      className={`flex px-8 h-[8vh] items-center ${isVideoReady ? 'justify-between' : 'justify-center'} bg-gray-500`}
+      className={`flex px-8 h-[8vh] items-center ${
+        isVideoReady ? 'justify-between' : 'justify-center'
+      } bg-gray-500`}
     >
-      <div className="text-3xl text-white font-semibold font-mono">{title}</div>
+      <div className="text-3xl text-white font-semibold font-mono">
+        {title}
+      </div>
       {isVideoReady && (
         <div className="flex gap-2">
-          <Button className={'font-semibold'} onClick={downloadConfig}>
-            <Download /> Config
+          <Button
+            variant="contained"
+            onClick={downloadConfig}
+            startIcon={<Download />}
+            sx={{
+              backgroundColor: '#2563eb', // Tailwind's "blue-600"
+              color: '#fff',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#1d4ed8', // Tailwind's "blue-700"
+              },
+            }}
+          >
+            CONFIG
           </Button>
-          <Button className={'font-semibold'} onClick={moveToNextScreen}>
-            Proceed <NavigateNext />
+          <Button
+            variant="contained"
+            onClick={moveToNextScreen}
+            endIcon={<NavigateNext />}
+            sx={{
+              backgroundColor: '#2563eb',
+              color: '#fff',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#1d4ed8',
+              },
+            }}
+          >
+            PROCEED
           </Button>
         </div>
       )}
