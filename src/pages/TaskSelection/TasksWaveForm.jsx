@@ -234,17 +234,17 @@ const TasksWaveForm = ({
                 Waveform {waveLoading && 'loading ...'}
               </div>
               <Slider
-                orientation={'horizontal'}
+                orientation="horizontal"
                 min={1}
                 max={10}
                 step={0.1}
-                onChange={e => {
-                  onZoomChange(e.target.value);
-                }}
+                onChange={e => onZoomChange(e.target.value)}
                 style={{ width: 200 }}
-                aria-label={'Zoom'}
-                valueLabelFormat={value => value + 'x'}
+                aria-label="Zoom"
+                valueLabelDisplay="auto"
+                valueLabelFormat={value => `${value}x`}
               />
+
             </div>
           )}
           {isVideoReady && waveLoading && (
