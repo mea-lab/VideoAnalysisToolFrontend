@@ -17,7 +17,6 @@ function App() {
         <Route path="/subjects" element={<SubjectResolution />} />
         <Route path="/tasks" element={<TaskSelection />} />
         <Route path="/taskdetails" element={<TaskDetails />} />
-        {/* <Route path="/old" element={<VideoAnalysis />} /> */}
         <Route path="/tasksInfo" element={<TasksInfoPage />} />
       </Routes>
     </VideoProvider>

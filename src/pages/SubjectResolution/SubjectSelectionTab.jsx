@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { PlayCircleOutline } from '@mui/icons-material';
 import Button from '@mui/material/Button';
-import JSONUploadDialog from '../../VideoAnalysis/JSONUploadDialog';
+import JSONUploadDialog from './SubjectJSONUploadDialog';
 
 const PersonRow = ({ person, onPlay, onToggleSubject }) => {
   const handlePlay = () => {

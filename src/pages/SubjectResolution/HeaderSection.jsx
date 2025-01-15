@@ -1,5 +1,5 @@
 //src/pages/SubjectResolution/HeaderSection.jsx
-import Button from '../../components/commons/Button';
+import Button from '@mui/material/Button';
 import { Download, NavigateNext } from '@mui/icons-material';
 
 const HeaderSection = ({

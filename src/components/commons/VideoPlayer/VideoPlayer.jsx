@@ -1,9 +1,9 @@
 //src/components/commons/VideoPlayer/VideoPlayer.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import VideoControls from './VideoControls';
+import { CanvasDrawer } from './CanvasDrawer';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
-import { CanvasDrawer } from './CanvasDrawer';
 
 const VideoPlayer = ({
     videoURL,
