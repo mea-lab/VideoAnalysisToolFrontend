@@ -1,6 +1,8 @@
-import { Download, NavigateNext } from '@mui/icons-material';
+import { Download, NavigateNext, ArrowBack} from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
+
+
 
 const HeaderSection = ({
   title,
@@ -46,6 +48,26 @@ const HeaderSection = ({
       </div>
       {isVideoReady && (
         <div className="flex gap-2">
+          
+          <Button
+          variant="contained"
+          onClick={() => navigate('/subjects')} // or any desired previous route
+          startIcon={<ArrowBack />}
+          sx={{
+            backgroundColor: '#2563eb',
+            color: '#fff',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            '&:hover': {
+              backgroundColor: '#1d4ed8',
+            },
+          }}
+        >
+          BACK
+        </Button>
+
+
+
           <Button
             variant="contained"
             onClick={downloadConfig}

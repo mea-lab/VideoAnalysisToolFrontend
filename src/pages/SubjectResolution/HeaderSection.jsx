@@ -1,6 +1,9 @@
 // src/pages/SubjectResolution/HeaderSection.jsx
+
+import React from 'react';
 import Button from '@mui/material/Button';
-import { Download, NavigateNext } from '@mui/icons-material';
+import { Download, NavigateNext, ArrowBack } from '@mui/icons-material';
+import { useNavigate } from 'react-router-dom';
 
 const HeaderSection = ({
   title,
@@ -11,6 +14,8 @@ const HeaderSection = ({
   moveToNextScreen,
   fileName,
 }) => {
+  const navigate = useNavigate();
+
   const downloadConfig = () => {
     const fileData = {
       fps: fps,
@@ -41,8 +46,28 @@ const HeaderSection = ({
       <div className="text-3xl text-white font-semibold font-mono">
         {title}
       </div>
+
       {isVideoReady && (
         <div className="flex gap-2">
+          {/* Back Button */}
+          <Button
+            variant="contained"
+            onClick={() => navigate('/')} // Navigates to Home page
+            startIcon={<ArrowBack />}
+            sx={{
+              backgroundColor: '#2563eb', // Tailwind's "blue-600"
+              color: '#fff',
+              textTransform: 'none',
+              fontWeight: 'bold',
+              '&:hover': {
+                backgroundColor: '#1d4ed8', // Tailwind's "blue-700"
+              },
+            }}
+          >
+            BACK
+          </Button>
+
+          {/* CONFIG Button */}
           <Button
             variant="contained"
             onClick={downloadConfig}
@@ -59,6 +84,8 @@ const HeaderSection = ({
           >
             CONFIG
           </Button>
+
+          {/* PROCEED Button */}
           <Button
             variant="contained"
             onClick={moveToNextScreen}
@@ -82,4 +109,3 @@ const HeaderSection = ({
 };
 
 export default HeaderSection;
-  

@@ -110,6 +110,7 @@ const TaskSelection = () => {
       task.id === newTask.id ? newTask : task,
     );
     setTasks(newTasks);
+    console.log("NEW TASKS SET", newTasks)
   };
 
   const onTaskDelete = deletedTask => {

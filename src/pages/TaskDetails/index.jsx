@@ -292,8 +292,6 @@ const TaskDetails = () => {
     <div className="flex flex-col min-h-screen max-h-screen">
       <div className="flex flex-1 flex-row max-h-screen">
         <div className={'flex w-1/2 max-h-screen bg-red-600 overflow-hidden'}>
-          <video src={videoURL} ref={videoRef}>
-          </video>
           <VideoPlayer
             videoData={videoData}
             screen={'taskDetails'}
