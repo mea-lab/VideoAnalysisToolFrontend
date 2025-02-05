@@ -90,6 +90,7 @@ const HeaderSection = ({
             variant="contained"
             onClick={moveToNextScreen}
             endIcon={<NavigateNext />}
+            disabled={boundingBoxes.length === 0} 
             sx={{
               backgroundColor: '#2563eb',
               color: '#fff',
@@ -98,6 +99,11 @@ const HeaderSection = ({
               '&:hover': {
                 backgroundColor: '#1d4ed8',
               },
+              // Add disabled state styling
+              '&:disabled': {
+                backgroundColor: '#94a3b8',  // Tailwind's "slate-400"
+                color: '#cbd5e1'  // Tailwind's "slate-300"
+              }
             }}
           >
             PROCEED
