@@ -1,6 +1,8 @@
 // src/components/commons/VideoPlayer/VideoControls.jsx
 import { Pause, PlayArrow } from '@mui/icons-material';
 import React, { useEffect } from 'react';
+import Tooltip from '@mui/material/Tooltip';
+
 
 const VideoControls = ({ videoRef, isPlaying, fps }) => {
   const checkVideoLoaded = () => {
@@ -68,36 +70,25 @@ const VideoControls = ({ videoRef, isPlaying, fps }) => {
 
   return (
     <div className="flex gap-4 text-2xl items-center">
-      {/* Hovering shows "Down Arrow" for -5 */}
-      <button title="Down Arrow" onClick={() => changeVideoFrame(-5)}>
-        -5
-      </button>
-      {/* Hovering shows "Left Arrow" for -1 */}
-      <button title="Left Arrow" onClick={() => changeVideoFrame(-1)}>
-        -1
-      </button>
-      {/* Hovering shows "Space Bar" for Play/Pause */}
-      {isPlaying ? (
-        <Pause
-          className="cursor-pointer"
-          title="Space Bar"
-          onClick={playOrPause}
-        />
-      ) : (
-        <PlayArrow
-          className="cursor-pointer"
-          title="Space Bar"
-          onClick={playOrPause}
-        />
-      )}
-      {/* Hovering shows "Right Arrow" for +1 */}
-      <button title="Right Arrow" onClick={() => changeVideoFrame(1)}>
-        +1
-      </button>
-      {/* Hovering shows "Up Arrow" for +5 */}
-      <button title="Up Arrow" onClick={() => changeVideoFrame(5)}>
-        +5
-      </button>
+      <Tooltip title="Down Arrow">
+        <button onClick={() => changeVideoFrame(-5)}> -5 </button>
+      </Tooltip>
+      <Tooltip title="Left Arrow">
+        <button onClick={() => changeVideoFrame(-1)}> -1 </button>
+      </Tooltip>
+      <Tooltip title="Space Bar">
+        {isPlaying ? (
+          <Pause className="cursor-pointer" onClick={playOrPause} />
+        ) : (
+          <PlayArrow className="cursor-pointer" onClick={playOrPause} />
+        )}
+      </Tooltip>
+      <Tooltip title="Right Arrow">
+        <button onClick={() => changeVideoFrame(1)}> +1 </button>
+      </Tooltip>
+      <Tooltip title="Up Arrow">
+        <button onClick={() => changeVideoFrame(5)}> +5 </button>
+      </Tooltip>
     </div>
   );
 };
