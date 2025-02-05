@@ -1,60 +1,44 @@
 // src/components/commons/VideoPlayer/VideoControls.jsx
-
 import { Pause, PlayArrow } from '@mui/icons-material';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 
 const VideoControls = ({ videoRef, isPlaying, fps }) => {
-  const [flag, setFlag] = useState(false);
-
-  useEffect(() => {
-    console.log('Flag has changed to ' + flag);
-  }, [flag]);
-
   const checkVideoLoaded = () => {
-    if (!videoRef.current) {
-      console.error('Video reference not found.');
+    const video = videoRef.current;
+    if (!video) return false;
+    if (video.error) {
+      console.error('Video error:', video.error.message);
       return false;
     }
-    if (videoRef.current.error) {
-      console.error('Video failed to load due to an error:', videoRef.current.error.message);
-      return false;
-    }
-    if (!videoRef.current.src && !videoRef.current.currentSrc) {
+    if (!video.src && !video.currentSrc) {
       console.error('No video source is set.');
       return false;
     }
-    if (videoRef.current.readyState === 4) {
-      return true;
-    } else {
-      console.warn('Video is not fully loaded yet. Current state:', videoRef.current.readyState);
-      return false;
-    }
+    return video.readyState === 4;
   };
 
   const playOrPause = () => {
-    if (checkVideoLoaded()) {
-      if (videoRef.current.paused) videoRef.current.play();
-      else videoRef.current.pause();
-    }
+    if (!checkVideoLoaded()) return;
+    const video = videoRef.current;
+    if (video.paused) video.play();
+    else video.pause();
   };
 
   const changeVideoTime = (offset) => {
     if (checkVideoLoaded()) {
-      videoRef.current.currentTime = videoRef.current.currentTime + offset;
+      videoRef.current.currentTime += offset;
     }
   };
 
-  const changeVideoFrame = (offset) => {
+  const changeVideoFrame = (frameOffset) => {
     if (checkVideoLoaded()) {
-      const timeOffset = offset / fps;
+      const timeOffset = frameOffset / fps;
       changeVideoTime(timeOffset);
     }
   };
 
   const handleKey = (event) => {
-    const video = videoRef.current;
-    if (!video) return;
-
+    if (!videoRef.current) return;
     switch (event.key) {
       case 'ArrowRight':
         changeVideoFrame(1);
@@ -79,10 +63,8 @@ const VideoControls = ({ videoRef, isPlaying, fps }) => {
 
   useEffect(() => {
     window.addEventListener('keydown', handleKey);
-    return () => {
-      window.removeEventListener('keydown', handleKey);
-    };
-  }, []);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [fps, videoRef]);
 
   return (
     <div className="flex gap-4 text-2xl items-center">

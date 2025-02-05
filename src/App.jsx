@@ -5,7 +5,6 @@ import HomePage from './pages/HomePage';
 import { Routes, Route } from 'react-router-dom';
 import TaskSelection from './pages/TaskSelection';
 import TaskDetails from './pages/TaskDetails';
-import TasksInfoPage from './pages/TasksInfo';
 import { VideoProvider } from './contexts/VideoContext';
 
 
@@ -17,7 +16,6 @@ function App() {
         <Route path="/subjects" element={<SubjectResolution />} />
         <Route path="/tasks" element={<TaskSelection />} />
         <Route path="/taskdetails" element={<TaskDetails />} />
-        <Route path="/tasksInfo" element={<TasksInfoPage />} />
       </Routes>
     </VideoProvider>
   );

@@ -38,127 +38,36 @@ export default function JSONUploadDialog({
 
   const handleAutoProcess = async () => {
     await getAnalysis();
-    // handleJSONUpload(true, null);
-    // setDialogOpen(false);
-  };
-
-  const validateNewJson = data => {
-    if (!data.hasOwnProperty('fps')) {
-      throw new Error('fps field is missing.');
-    } else if (typeof data.fps !== 'number') {
-      throw new Error('fps should be a number.');
-    }
-
-    if (!data.hasOwnProperty('boundingBoxes')) {
-      throw new Error('boundingBoxes field is missing.');
-    } else if (!Array.isArray(data.boundingBoxes)) {
-      throw new Error('boundingBoxes should be an array.');
-    }
-
-    data.boundingBoxes.forEach(box => {
-      if (!box.hasOwnProperty('frameNumber')) {
-        throw new Error('frameNumber field in boundingBoxes is missing.');
-      } else if (typeof box.frameNumber !== 'number') {
-        throw new Error('frameNumber in boundingBoxes should be a number.');
-      }
-
-      if (!box.hasOwnProperty('data')) {
-        throw new Error('data field in boundingBoxes is missing.');
-      } else if (!Array.isArray(box.data)) {
-        throw new Error('data in boundingBoxes should be an array.');
-      }
-
-      box.data.forEach(item => {
-        if (!item.hasOwnProperty('id')) {
-          throw new Error('id field in boundingBoxes data is missing.');
-        }
-        // } else if (typeof item.id !== 'number') {
-        //     throw new Error('id in boundingBoxes data should be a number.');
-        // }
-
-        ['x', 'y', 'width', 'height'].forEach(prop => {
-          if (!item.hasOwnProperty(prop)) {
-            throw new Error(`${prop} field in boundingBoxes data is missing.`);
-          } else if (typeof item[prop] !== 'number') {
-            throw new Error(
-              `${prop} in boundingBoxes data should be a number.`,
-            );
-          }
-        });
-      });
-    });
-
-    return true;
-  };
-
-  const validateOldJson = json => {
-    if (!Array.isArray(json)) {
-      return false;
-    }
-
-    for (let item of json) {
-      if (
-        typeof item !== 'object' ||
-        item === null ||
-        !('id' in item) ||
-        !('start' in item) ||
-        !('end' in item) ||
-        !('attributes' in item)
-      ) {
-        return false;
-      }
-
-      if (
-        typeof item.id !== 'string' ||
-        typeof item.start !== 'number' ||
-        typeof item.end !== 'number' ||
-        typeof item.attributes !== 'object' ||
-        item.attributes === null ||
-        !('label' in item.attributes) ||
-        typeof item.attributes.label !== 'string'
-      ) {
-        return false;
-      }
-
-      if (item.start >= item.end) {
-        return false;
-      }
-    }
-
-    return true;
   };
 
   const validateJson = data => {
-    //     let validNewJson = false;
-    //     let validOldJson = false;
-    //     let errorMessage = "";
-    //     try {
-    //         validNewJson = validateNewJson(data);
-
-    //     } catch (error) {
-    //         errorMessage = error.message;
-    //         // setFileError(error.message);
-    //         validNewJson = false;
-    //     }
-
-    //     try {
-    //         validOldJson = validateOldJson(data);
-
-    //     } catch (error) {
-    //         errorMessage = error.message;
-    //         // setFileError(error.message);
-    //         validOldJson = false;
-    //     }
-
-    //     if (validNewJson || validOldJson) {
-    //         setFileError(errorMessage);
-    //         return true;
-    //     }
-
-    //    return false;
-
     return true;
   };
+
+  function computeAggregateBoundingBox(boxes) {
+    if (!boxes || boxes.length === 0) {
+      return null;
+    }
+  
+    let minX = boxes[0].data[0].x;
+    let minY = boxes[0].data[0].y;
+    let maxX = boxes[0].data[0].x + boxes[0].data[0].width;
+    let maxY = boxes[0].data[0].y + boxes[0].data[0].height;
+  
+    boxes.forEach(box => {
+      minX = Math.min(minX, box.data[0].x);
+      minY = Math.min(minY, box.data[0].y);
+      maxX = Math.max(maxX, box.data[0].x + box.data[0].width);
+      maxY = Math.max(maxY, box.data[0].y + box.data[0].height);
+    });
+  
+    return {
+      x: minX,
+      y: minY,
+      width: maxX - minX,
+      height: maxY - minY,
+    };
+  }
 
   const handleFileChange = async event => {
     const file = event.target.files[0];
@@ -169,7 +78,6 @@ export default function JSONUploadDialog({
           const jsonContent = JSON.parse(content);
           if (validateJson(jsonContent)) {
             setJSONContent(JSON.parse(content));
-            // setFileName(file.name);
             setFileError('');
           }
         } catch (error) {
@@ -198,32 +106,14 @@ export default function JSONUploadDialog({
       let taskData = tasks[selectedTask];
 
       console.log("Task Data:", taskData)
+      console.log("Tasks:", tasks)
 
-      // {
-      //     "start": 1.074,
-      //     "end": 2.754,
-      //     "name": "Dynamic tremor",
-      //     "id": 1,
-      //     "x": 221,
-      //     "y": 673,
-      //     "width": 638,
-      //     "height": 1238
-      // },
-      //
 
-      let boundingBox = {
-        x: taskData.x,
-        y: taskData.y,
-        width: taskData.width,
-        height: taskData.height,
-      };
-
-      console.log("Bounding Box", boundingBox)
-
-      // let jsonData = JSON.stringify({'boundingBoxes': boundingBoxes, 'fps': fps});
+      const aggregateBox = computeAggregateBoundingBox(boundingBoxes);
+      console.log("Aggregate Bounding Box:", aggregateBox);
 
       let jsonData = {
-        boundingBox: boundingBox,
+        boundingBox: aggregateBox,
         task_name: taskData.name,
         start_time: taskData.start,
         end_time: taskData.end,

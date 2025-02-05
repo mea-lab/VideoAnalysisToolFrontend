@@ -299,7 +299,7 @@ const TaskDetails = () => {
             videoRef={videoRef}
             boundingBoxes={boundingBoxes}
             fps={fps}
-            persons={[]}
+            persons={persons}
             fpsCallback={onFPSCalculation}
             setVideoReady={setVideoReady}
             videoURL={videoURL}

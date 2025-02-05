@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
 import { Slider } from '@mui/material';
-// Optional: If you have a circular progress component, import it:
 // import CircularProgressWithLabel from '../SubjectResolution/CircularProgressWithLabel';
 
 const SubjectsWaveForm = ({ videoRef, persons, isVideoReady }) => {
@@ -72,21 +71,21 @@ const SubjectsWaveForm = ({ videoRef, persons, isVideoReady }) => {
   }, [isVideoReady, videoRef]);
 
   // 3) Once WaveSurfer is ready, we can register regions for each person
-  useEffect(() => {
-    if (!waveSurfer.current || !persons.length) return;
+  // useEffect(() => {
+  //   if (!waveSurfer.current || !persons.length) return;
 
-    const wsRegions = waveSurfer.current.registerPlugin(RegionsPlugin.create());
-    // Add read-only regions at each subject's timestamp
-    persons.forEach((subject) => {
-      wsRegions.addRegion({
-        start: subject.timestamp,
-        end: subject.timestamp + 0.001,
-        content: subject.name,
-        drag: false,
-        resize: false,
-      });
-    });
-  }, [persons]);
+  //   const wsRegions = waveSurfer.current.registerPlugin(RegionsPlugin.create());
+  //   // Add read-only regions at each subject's timestamp
+  //   persons.forEach((subject) => {
+  //     wsRegions.addRegion({
+  //       start: subject.timestamp,
+  //       end: subject.timestamp + 0.001,
+  //       content: subject.name,
+  //       drag: false,
+  //       resize: false,
+  //     });
+  //   });
+  // }, [persons]);
 
   return (
     <div className="flex flex-col gap-2 justify-center items-center w-full border-t-2 pt-4 px-2">
