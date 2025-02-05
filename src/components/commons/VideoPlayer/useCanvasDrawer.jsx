@@ -1,4 +1,3 @@
-// src/hooks/useCanvasDrawer.js
 import { useEffect, useRef, useCallback } from 'react';
 
 const useCanvasDrawer = ({
@@ -154,7 +153,7 @@ const useCanvasDrawer = ({
     ]
   );
 
-  // Effect to set canvas dimensions when video metadata is available, and to trigger drawing whenever the video's time updates.
+  // Set canvas dimensions and start a continuous render loop.
   useEffect(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -163,7 +162,6 @@ const useCanvasDrawer = ({
     const setCanvasDimensions = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-      drawFrame(video.currentTime);
     };
 
     if (video.readyState >= 1) {
@@ -172,17 +170,20 @@ const useCanvasDrawer = ({
       video.addEventListener('loadedmetadata', setCanvasDimensions);
     }
 
-    const handleTimeUpdate = () => {
+    let animationFrameId;
+    const render = () => {
       drawFrame(video.currentTime);
+      animationFrameId = requestAnimationFrame(render);
     };
-    video.addEventListener('timeupdate', handleTimeUpdate);
+    render();
 
     return () => {
       video.removeEventListener('loadedmetadata', setCanvasDimensions);
-      video.removeEventListener('timeupdate', handleTimeUpdate);
+      cancelAnimationFrame(animationFrameId);
     };
   }, [videoRef, canvasRef, drawFrame]);
 
+  // Also re-draw when external dependencies change (e.g. new bounding boxes or landmarks).
   useEffect(() => {
     lastDrawnFrame.current = -1;
     const video = videoRef.current;

@@ -1,4 +1,3 @@
-// src/components/commons/VideoPlayer/VideoPlayer.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import VideoControls from './VideoControls';
 import useCanvasDrawer from './useCanvasDrawer'; // adjust the import path as needed
@@ -37,7 +36,7 @@ const VideoPlayer = ({
   const canvasRef = useRef(null);
 
   // Initialize the canvas drawing hook.
-  // (This hook will automatically set the canvas size and start drawing via requestVideoFrameCallback.)
+  // (This hook now drives drawing via requestAnimationFrame so no frames are skipped.)
   useCanvasDrawer({
     videoRef,
     canvasRef,
@@ -52,24 +51,20 @@ const VideoPlayer = ({
   });
 
   const [currentFrame, setCurrentFrame] = useState(0);
-  const updateFrameNumber = () => {
-    if (videoRef.current) {
-      const frameNumber = Math.round(fps * videoRef.current.currentTime);
-      setCurrentFrame(frameNumber);
-    }
-  };
-
+  
+  // Instead of using the 'timeupdate' event we update the frame number every animation frame.
   useEffect(() => {
-
-    if (videoRef.current) {
-      videoRef.current.addEventListener('timeupdate', updateFrameNumber);
-    }
-    return () => {
+    let animationFrameId;
+    const updateFrameNumber = () => {
       if (videoRef.current) {
-        videoRef.current.removeEventListener('timeupdate', updateFrameNumber);
+        const frameNumber = Math.round(fps * videoRef.current.currentTime);
+        setCurrentFrame(frameNumber);
       }
+      animationFrameId = requestAnimationFrame(updateFrameNumber);
     };
-  }, [videoRef, fps, boundingBoxes]);
+    updateFrameNumber();
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [videoRef, fps]);
 
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
