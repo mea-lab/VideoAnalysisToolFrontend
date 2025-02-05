@@ -16,19 +16,14 @@ const TasksWaveForm = ({
   const waveformRef = useRef(null);
   const waveSurferRef = useRef(null);
   const regionsPluginRef = useRef(null);
-  // This flag tells us when to ignore region events that occur during our own updates.
   const ignoreRegionEventsRef = useRef(false);
   const [waveLoading, setWaveLoading] = useState(false);
   const [loadPercent, setLoadPercent] = useState(0);
-  // Flag indicating WaveSurfer is fully ready.
   const [waveSurferReady, setWaveSurferReady] = useState(false);
-  // Always keep a current reference to tasks.
   const tasksRef = useRef(tasks);
 
-  // This function redraws regions based solely on the tasks state.
   const updateRegions = () => {
     if (regionsPluginRef.current) {
-      // Set flag to ignore events triggered by our programmatic changes.
       ignoreRegionEventsRef.current = true;
       regionsPluginRef.current.clearRegions();
       tasks.forEach(task => {
@@ -37,14 +32,14 @@ const TasksWaveForm = ({
           start: task.start,
           end: task.end,
           content: task.name,
+          drag: true,
+          resize: true,
         });
       });
-      // Allow event handling again.
       ignoreRegionEventsRef.current = false;
     }
   };
 
-  // Whenever tasks or WaveSurfer readiness changes, update the regions.
   useEffect(() => {
     tasksRef.current = tasks;
     if (regionsPluginRef.current && waveSurferRef.current && waveSurferReady) {
@@ -52,7 +47,6 @@ const TasksWaveForm = ({
     }
   }, [tasks, waveSurferReady]);
 
-  // Create the WaveSurfer options.
   const getWaveSurferOptions = () => ({
     container: waveformRef.current,
     waveColor: 'violet',
@@ -62,51 +56,39 @@ const TasksWaveForm = ({
     barRadius: 3,
     responsive: true,
     height: 100,
-    minPxPerSec: 680 / videoRef.current.duration,
+    minPxPerSec: 100,
     autoScroll: true,
     normalize: true,
-    zoom: true,
-    scrollParent: true,
     media: videoRef.current,
   });
 
-  // Returns the highest id among the current tasks.
   const getHighestId = () =>
     tasksRef.current.reduce((max, t) => Math.max(max, t.id), 0);
 
-  // Called when a region is created by a user drag.
-  // We add a corresponding task and remove the temporary region.
   const handleNewRegion = region => {
-    // Ignore events if we're in the middle of a programmatic update
-    // or if the region already has content (i.e. created from a task).
     if (ignoreRegionEventsRef.current || region.content) return;
 
-    const newId = getHighestId() + 1;
     const startTime = parseFloat(region.start.toFixed(3));
     const endTime = parseFloat(region.end.toFixed(3));
+    const newId = getHighestId() + 1;
     const regionName = `Region ${newId}`;
 
-    // Mark the region with our content and id.
-    ignoreRegionEventsRef.current = true;
-    region.setContent(regionName);
-    region.setOptions({ id: newId });
-    ignoreRegionEventsRef.current = false;
+    region.remove()
+    if (region.element && region.element.parentNode) {
+      region.element.parentNode.removeChild(region.element);
+    }
 
-    // Add the new task.
     const newTask = { id: newId, start: startTime, end: endTime, name: regionName };
     setTasks(prev => [...prev, newTask]);
     if (!tasksReady) setTasksReady(true);
-
-    // Remove the temporary region created by the drag.
-    region.remove();
   };
 
-  // Called when an existing region is updated (e.g. moved or resized).
   const handleRegionUpdate = region => {
     if (ignoreRegionEventsRef.current) return;
     const startTime = parseFloat(region.start.toFixed(3));
     const endTime = parseFloat(region.end.toFixed(3));
     const taskToUpdate = tasksRef.current.find(t => t.id === region.id);
+    
     if (!taskToUpdate) return;
     if (
       Math.abs(taskToUpdate.start - startTime) > 0.001 ||
@@ -122,11 +104,9 @@ const TasksWaveForm = ({
     }
   };
 
-  // Initialize WaveSurfer (with plugins and event handlers) when the video is ready.
   useEffect(() => {
     if (!isVideoReady || !videoRef.current) return;
 
-    // Destroy any previous instance.
     if (waveSurferRef.current) {
       waveSurferRef.current.destroy();
     }
@@ -140,24 +120,19 @@ const TasksWaveForm = ({
 
     waveSurferRef.current.on('ready', () => {
       setWaveLoading(false);
-      waveSurferRef.current.isReady = true;
-      // Signal that WaveSurfer is ready so that our effect can draw regions.
       setWaveSurferReady(true);
     });
 
-    // Register plugins.
     regionsPluginRef.current = waveSurferRef.current.registerPlugin(
       RegionsPlugin.create()
     );
-    // Enable drag selection so that the user can create a new region.
-    regionsPluginRef.current.enableDragSelection();
+
+    regionsPluginRef.current.enableDragSelection({});
     waveSurferRef.current.registerPlugin(HoverPlugin.create({}));
 
-    // Attach region event listeners.
     regionsPluginRef.current.on('region-created', handleNewRegion);
     regionsPluginRef.current.on('region-updated', handleRegionUpdate);
 
-    // Cleanup on unmount.
     return () => {
       if (waveSurferRef.current) {
         waveSurferRef.current.destroy();
@@ -167,11 +142,9 @@ const TasksWaveForm = ({
     };
   }, [isVideoReady, videoRef]);
 
-  // Zoom handler for the slider.
   const onZoomChange = (e, zoomLevel) => {
     if (isVideoReady && waveSurferRef.current && !waveLoading) {
-      const pxPerSec = (670 / videoRef.current.duration) * zoomLevel;
-      waveSurferRef.current.zoom(pxPerSec);
+      waveSurferRef.current.zoom(zoomLevel);
     }
   };
 
@@ -186,8 +159,8 @@ const TasksWaveForm = ({
             <Slider
               orientation="horizontal"
               min={1}
-              max={10}
-              step={0.1}
+              max={100}
+              step={1}
               onChange={onZoomChange}
               style={{ width: 200 }}
               aria-label="Zoom"
