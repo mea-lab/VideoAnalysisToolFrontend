@@ -85,21 +85,28 @@ const HeaderSection = ({
             CONFIG
           </Button>
           <Button
-            variant="contained"
-            onClick={moveToNextScreen}
-            endIcon={<NavigateNext />}
-            sx={{
-              backgroundColor: '#2563eb',
-              color: '#fff',
-              textTransform: 'none',
-              fontWeight: 'bold',
-              '&:hover': {
-                backgroundColor: '#1d4ed8',
-              },
-            }}
-          >
-            PROCEED
-          </Button>
+          variant="contained"
+          onClick={moveToNextScreen}
+          endIcon={<NavigateNext />}
+          disabled={taskBoxes.length === 0}  // Add disabled condition
+          sx={{
+            backgroundColor: '#2563eb',
+            color: '#fff',
+            textTransform: 'none',
+            fontWeight: 'bold',
+            '&:hover': {
+              backgroundColor: '#1d4ed8',
+            },
+            // Add disabled state styling
+            '&:disabled': {
+              backgroundColor: '#94a3b8',  // Tailwind's "slate-400"
+              color: '#cbd5e1',  // Tailwind's "slate-300"
+              cursor: 'not-allowed'
+            }
+          }}
+        >
+          PROCEED
+        </Button>
         </div>
       )}
     </div>
