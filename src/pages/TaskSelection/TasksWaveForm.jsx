@@ -24,6 +24,7 @@ const TasksWaveForm = ({
 
   const updateRegions = () => {
     if (regionsPluginRef.current) {
+      
       ignoreRegionEventsRef.current = true;
       regionsPluginRef.current.clearRegions();
       tasks.forEach(task => {
@@ -45,7 +46,7 @@ const TasksWaveForm = ({
     if (regionsPluginRef.current && waveSurferRef.current && waveSurferReady) {
       updateRegions();
     }
-  }, [tasks, waveSurferReady]);
+  }, [tasks,waveSurferReady]);
 
   const getWaveSurferOptions = () => ({
     container: waveformRef.current,
@@ -65,18 +66,19 @@ const TasksWaveForm = ({
   const getHighestId = () =>
     tasksRef.current.reduce((max, t) => Math.max(max, t.id), 0);
 
-  const handleNewRegion = region => {
+  const handleNewRegion = (region) => {
     if (ignoreRegionEventsRef.current || region.content) return;
 
     const startTime = parseFloat(region.start.toFixed(3));
     const endTime = parseFloat(region.end.toFixed(3));
     const newId = getHighestId() + 1;
     const regionName = `Region ${newId}`;
-
-    region.remove()
-    if (region.element && region.element.parentNode) {
-      region.element.parentNode.removeChild(region.element);
-    }
+    
+    //Hide original region
+    region.setOptions({ 
+      color: 'rgba(0, 0, 0, 0.0)',
+      resize: false,
+    });
 
     const newTask = { id: newId, start: startTime, end: endTime, name: regionName };
     setTasks(prev => [...prev, newTask]);
