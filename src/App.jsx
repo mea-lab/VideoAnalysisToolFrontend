@@ -1,5 +1,4 @@
 // src/App.jsx
-// import VideoAnalysis from './VideoAnalysis/VideoAnalysis';
 import SubjectResolution from './pages/SubjectResolution';
 import HomePage from './pages/HomePage';
 import { Routes, Route } from 'react-router-dom';

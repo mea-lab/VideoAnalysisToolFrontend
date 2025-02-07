@@ -19,6 +19,9 @@ export const VideoProvider = ({ children }) => {
 
     useEffect(() => {
         if(videoData != null) {
+            if(videoURL != "") {
+                URL.revokeObjectURL(videoURL);
+            }
             console.log("Creating new URL")
             const newVideoURL = URL.createObjectURL(videoData);
             setFileName(videoData.name || 'video.mp4');

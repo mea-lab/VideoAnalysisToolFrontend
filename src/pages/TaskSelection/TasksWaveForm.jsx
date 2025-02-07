@@ -79,6 +79,7 @@ const TasksWaveForm = ({
       color: 'rgba(0, 0, 0, 0.0)',
       resize: false,
     });
+    region.remove()
 
     const newTask = { id: newId, start: startTime, end: endTime, name: regionName };
     setTasks(prev => [...prev, newTask]);
