@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
 import HoverPlugin from 'wavesurfer.js/plugins/hover';
-import CircularProgressWithLabel from '../SubjectResolution/CircularProgressWithLabel';
+import CircularProgressWithLabel from '../../components/commons/CircularProgress';
 import { Slider } from '@mui/material';
 
 const TasksWaveForm = ({
