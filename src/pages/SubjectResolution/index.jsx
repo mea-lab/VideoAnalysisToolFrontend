@@ -1,14 +1,13 @@
-//src/pages/SubjectResolution/index.jsx
+import React, { useContext } from 'react';
+import { useNavigate } from 'react-router-dom';
 import HeaderSection from './HeaderSection';
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import SubjectSelectionTab from './SubjectSelectionTab';
 import SubjectsWaveForm from './SubjectsWaveForm';
-import { useEffect, useState, useContext, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { VideoContext } from '../../contexts/VideoContext';
 
 const SubjectResolution = () => {
-  const { 
+  const {
     videoReady,
     setVideoReady,
     videoData,
@@ -23,11 +22,6 @@ const SubjectResolution = () => {
     fps,
     setFPS,
     taskBoxes,
-    setTaskBoxes,
-    tasks,
-    setTasks,
-    tasksReady,
-    setTasksReady,
     persons,
     setPersons,
     boxesReady,
@@ -36,24 +30,22 @@ const SubjectResolution = () => {
 
   const navigate = useNavigate();
 
-  const checkIfSubject = (id) => {
-    const person = persons.find((person) => person.id === id);
-    return person && person.isSubject;
-  };
+  // Returns true if the person with the given id is marked as subject.
+  const isSubject = id => persons.find(p => p.id === id)?.isSubject;
 
   const updateFinalBoundingBoxes = () => {
-    const newBoundingBoxes = boundingBoxes.map((frameBoxes) => {
-      const boxes = frameBoxes.data.filter((box) => checkIfSubject(box.id));
-      return { ...frameBoxes, data: boxes };
-    });
-    setBoundingBoxes(newBoundingBoxes);
+    setBoundingBoxes(
+      boundingBoxes.map(frame => ({
+        ...frame,
+        data: frame.data.filter(box => isSubject(box.id)),
+      }))
+    );
   };
 
   const moveToNextScreen = () => {
     updateFinalBoundingBoxes();
     navigate('/tasks');
   };
-
 
   return (
     <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
@@ -75,7 +67,6 @@ const SubjectResolution = () => {
             setVideoData={setVideoData}
           />
         </div>
-
         <div className="flex flex-col gap-4 min-h-[100vh] w-1/2">
           <HeaderSection
             title="Subject Selection"
