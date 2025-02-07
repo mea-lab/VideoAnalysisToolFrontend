@@ -70,9 +70,9 @@ const VideoPlayer = ({
     const file = event.target.files[0];
     if (file) {
       setVideoData(file);
-      setFileName(file.name);
-      const videoUrl = URL.createObjectURL(file);
-      setVideoURL(videoUrl);
+      // setFileName(file.name);
+      // const videoUrl = URL.createObjectURL(file);
+      // setVideoURL(videoUrl);
     }
   };
 

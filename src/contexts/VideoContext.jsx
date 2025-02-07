@@ -16,24 +16,30 @@ export const VideoProvider = ({ children }) => {
     const [tasksReady, setTasksReady] = useState(false);
     const [persons, setPersons] = useState([]);
     const [boxesReady, setBoxesReady] = useState(false);
+    const prevVideoDataRef = useRef(null);
 
     useEffect(() => {
-        if(videoData != null) {
-            if(videoURL != "") {
-                URL.revokeObjectURL(videoURL);
-            }
-            console.log("Creating new URL")
-            setBoundingBoxes([]);
-            setPersons([]);
-            setTasks([]);
-            setTasksReady(false);
-            setBoxesReady(false);
-            setVideoReady(false);
-
-            const newVideoURL = URL.createObjectURL(videoData);
-            setFileName(videoData.name || 'video.mp4');
-            setVideoURL(newVideoURL);
+        if(prevVideoDataRef.current === videoData) {
+            return
         }
+    
+        if (videoURL !== "") {
+            URL.revokeObjectURL(videoURL);
+        }
+        
+        //Set video information we have at start
+        const newVideoURL = URL.createObjectURL(videoData);
+        prevVideoDataRef.current = videoData;
+        setVideoURL(newVideoURL);
+        setFileName(videoData.name || 'video.mp4');
+
+        //Reset video information we do not have
+        setBoundingBoxes([]);
+        setPersons([]);
+        setTasks([]);
+        setTasksReady(false);
+        setBoxesReady(false);
+        setVideoReady(false);
 
         return () => {
             console.log("Unmounting video context...")
