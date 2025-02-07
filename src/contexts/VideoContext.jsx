@@ -20,6 +20,13 @@ export const VideoProvider = ({ children }) => {
     useEffect(() => {
         if(videoData != null) {
             console.log("Creating new URL")
+            setBoundingBoxes([]);
+            setPersons([]);
+            setTasks([]);
+            setTasksReady(false);
+            setBoxesReady(false);
+            setVideoReady(false);
+
             const newVideoURL = URL.createObjectURL(videoData);
             setFileName(videoData.name || 'video.mp4');
             setVideoURL(newVideoURL);

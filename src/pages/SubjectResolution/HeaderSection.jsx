@@ -71,6 +71,7 @@ const HeaderSection = ({
           <Button
             variant="contained"
             onClick={downloadConfig}
+            disabled={boundingBoxes.length === 0} 
             startIcon={<Download />}
             sx={{
               backgroundColor: '#2563eb', // Tailwind's "blue-600"
@@ -80,6 +81,10 @@ const HeaderSection = ({
               '&:hover': {
                 backgroundColor: '#1d4ed8', // Tailwind's "blue-700"
               },
+              '&:disabled': {
+                backgroundColor: '#94a3b8',  // Tailwind's "slate-400"
+                color: '#cbd5e1'  // Tailwind's "slate-300"
+              }
             }}
           >
             CONFIG
