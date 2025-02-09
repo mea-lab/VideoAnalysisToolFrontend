@@ -15,6 +15,7 @@ const VideoPlayer = ({
   setVideoData,
   screen,
   taskBoxes,
+  setTaskBoxes,
   landMarks,
   selectedTask,
   postVideoLoad,
@@ -43,6 +44,7 @@ const VideoPlayer = ({
     landMarks,
     selectedTask,
     frameOffset,
+    setTaskBoxes,
   });
   const [currentFrame, setCurrentFrame] = useState(0);
 
@@ -201,10 +203,7 @@ const VideoPlayer = ({
                   transformOrigin: 'center center',
                   pointerEvents: 'none',
                 }}
-                onLoadedMetadata={() => {
-                  setVideoReady(true);
-                  if (postVideoLoad) postVideoLoad();
-                }}
+                onLoadedMetadata={() => setVideoReady(true)}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 loop
