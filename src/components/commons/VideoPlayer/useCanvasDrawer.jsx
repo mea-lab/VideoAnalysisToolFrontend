@@ -15,12 +15,12 @@ const useCanvasDrawer = ({
   const currentFrame = useRef(-1);
   const lastDrawnFrame = useRef(-1);
 
-  // Convert a video time into a frame number
   const getFrameNumber = useCallback(
     (timestamp) => Math.floor(timestamp * fps) + frameOffset,
     [fps, frameOffset]
   );
 
+  
   const clearCanvas = useCallback(() => {
     const canvas = canvasRef.current;
     if (canvas) {
@@ -29,6 +29,7 @@ const useCanvasDrawer = ({
     }
   }, [canvasRef]);
 
+  
   const drawVideoFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -37,6 +38,7 @@ const useCanvasDrawer = ({
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
   }, [videoRef, canvasRef]);
+
 
   const drawBoundingBoxes = useCallback(() => {
     const canvas = canvasRef.current;
@@ -63,6 +65,7 @@ const useCanvasDrawer = ({
     }
   }, [boundingBoxes, persons, canvasRef]);
 
+
   const drawTaskBoxes = useCallback(
     (currentTime) => {
       const canvas = canvasRef.current;
@@ -80,6 +83,7 @@ const useCanvasDrawer = ({
     },
     [taskBoxes, canvasRef]
   );
+
 
   const drawLandMarks = useCallback(
     (currentTime) => {
@@ -120,11 +124,12 @@ const useCanvasDrawer = ({
     [taskBoxes, selectedTask, fps, landMarks, canvasRef]
   );
 
+
   // Main draw function that selects which overlay to render.
   const drawFrame = useCallback(
     (currentTime) => {
       const video = videoRef.current;
-      if (!video) return; // Do nothing if video isn't available.
+      if (!video) return;
       const frameNumber = getFrameNumber(currentTime);
 
       lastDrawnFrame.current = frameNumber;
@@ -133,8 +138,8 @@ const useCanvasDrawer = ({
       clearCanvas();
       drawVideoFrame();
       if (screen === 'tasks') {
-        drawBoundingBoxes();
-        // drawTaskBoxes(currentTime);
+        // drawBoundingBoxes();
+        drawTaskBoxes(currentTime);
       } else if (screen === 'taskDetails') {
         drawBoundingBoxes();
         drawLandMarks(currentTime);
@@ -152,6 +157,7 @@ const useCanvasDrawer = ({
       videoRef,
     ]
   );
+
 
   // Set canvas dimensions and start a continuous render loop.
   useEffect(() => {
@@ -182,6 +188,7 @@ const useCanvasDrawer = ({
       cancelAnimationFrame(animationFrameId);
     };
   }, [videoRef, canvasRef, drawFrame]);
+
 
   // Also re-draw when external dependencies change (e.g. new bounding boxes or landmarks).
   useEffect(() => {

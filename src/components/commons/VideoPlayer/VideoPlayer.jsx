@@ -1,42 +1,37 @@
 import React, { useEffect, useRef, useState } from 'react';
 import VideoControls from './VideoControls';
-import useCanvasDrawer from './useCanvasDrawer'; // adjust the import path as needed
+import useCanvasDrawer from './useCanvasDrawer';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 
 const VideoPlayer = ({
   videoURL,
-  setVideoURL,
-  videoData,
   videoRef,
   fps,
   boundingBoxes,
   persons,
   setVideoReady,
   fileName,
-  setFileName,
   setVideoData,
   screen,
   taskBoxes,
-  setTaskBoxes,
   landMarks,
-  setLandMarks,
   selectedTask,
   postVideoLoad,
   frameOffset,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
-
-  // State for panning (dragging) the video/canvas container
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
 
   const canvasRef = useRef(null);
+  const containerRef = useRef(null);
+  const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
 
-  // Initialize the canvas drawing hook.
-  // (This hook now drives drawing via requestAnimationFrame so no frames are skipped.)
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef(null);
+
+
   useCanvasDrawer({
     videoRef,
     canvasRef,
@@ -49,10 +44,10 @@ const VideoPlayer = ({
     selectedTask,
     frameOffset,
   });
-
   const [currentFrame, setCurrentFrame] = useState(0);
-  
-  // Instead of using the 'timeupdate' event we update the frame number every animation frame.
+
+
+  // Update the current frame number on each animation frame.
   useEffect(() => {
     let animationFrameId;
     const updateFrameNumber = () => {
@@ -66,42 +61,46 @@ const VideoPlayer = ({
     return () => cancelAnimationFrame(animationFrameId);
   }, [videoRef, fps]);
 
+
+  useEffect(() => {
+    const updateSize = () => {
+      if (containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        setContainerSize({ width: rect.width, height: rect.height });
+      }
+    };
+    updateSize();
+    window.addEventListener('resize', updateSize);
+    return () => window.removeEventListener('resize', updateSize);
+  }, []);
+
+
+  useEffect(() => {
+    if (containerSize.width && containerSize.height) {
+      const maxOffsetX = ((zoomLevel - 1) * containerSize.width) / 2;
+      const maxOffsetY = ((zoomLevel - 1) * containerSize.height) / 2;
+      setPanOffset(prev => ({
+        x: Math.max(-maxOffsetX, Math.min(prev.x, maxOffsetX)),
+        y: Math.max(-maxOffsetY, Math.min(prev.y, maxOffsetY)),
+      }));
+    }
+  }, [zoomLevel, containerSize]);
+
+
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
       setVideoData(file);
-      // setFileName(file.name);
-      // const videoUrl = URL.createObjectURL(file);
-      // setVideoURL(videoUrl);
     }
   };
 
+  
   const resetVideo = () => {
-    setVideoURL('');
-    setFileName('');
-    setIsPlaying(false);
-    setVideoReady(false);
-    if (videoRef.current) {
-      videoRef.current.remove();
-    }
+    setVideoData(null);
+    setZoomLevel(1);
+    setPanOffset({ x: 0, y: 0 });
   };
 
-  // Drag logic for panning the video and canvas.
-  const handleMouseDown = (e) => {
-    setIsDragging(true);
-    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
-  };
-
-  const handleMouseMove = (e) => {
-    if (!isDragging) return;
-    const newOffsetX = e.clientX - dragStart.x;
-    const newOffsetY = e.clientY - dragStart.y;
-    setOffset({ x: newOffsetX, y: newOffsetY });
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
 
   const getTotalFrameCount = () => {
     if (videoRef.current && !isNaN(videoRef.current.duration)) {
@@ -110,6 +109,41 @@ const VideoPlayer = ({
     return 0;
   };
 
+
+  const handlePointerDown = (e) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      dragStartRef.current = {
+        x: e.clientX,
+        y: e.clientY,
+        panOffset: { ...panOffset },
+      };
+      e.target.setPointerCapture(e.pointerId);
+    }
+  };
+
+
+  const handlePointerMove = (e) => {
+    if (!isDragging || !dragStartRef.current) return;
+    const dx = e.clientX - dragStartRef.current.x;
+    const dy = e.clientY - dragStartRef.current.y;
+    let newX = dragStartRef.current.panOffset.x + dx;
+    let newY = dragStartRef.current.panOffset.y + dy;
+    const maxOffsetX = ((zoomLevel - 1) * containerSize.width) / 2;
+    const maxOffsetY = ((zoomLevel - 1) * containerSize.height) / 2;
+    newX = Math.max(-maxOffsetX, Math.min(newX, maxOffsetX));
+    newY = Math.max(-maxOffsetY, Math.min(newY, maxOffsetY));
+    setPanOffset({ x: newX, y: newY });
+  };
+
+
+  const handlePointerUp = (e) => {
+    setIsDragging(false);
+    dragStartRef.current = null;
+    e.target.releasePointerCapture(e.pointerId);
+  };
+
+  
   return (
     <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-200 w-full h-full">
       {!videoURL && (
@@ -148,11 +182,13 @@ const VideoPlayer = ({
             </div>
 
             <div
+              ref={containerRef}
               className="relative w-full h-full overflow-hidden"
-              style={{ cursor: isDragging ? 'grabbing' : 'grab' }}
-              onMouseDown={handleMouseDown}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onPointerLeave={handlePointerUp}
+              style={{ touchAction: 'none' }}
             >
               <video
                 src={videoURL}
@@ -161,12 +197,7 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
-                  // Apply the same pan/zoom transform to both video and canvas
-                  transform: `
-                    translate(calc(50% + ${offset.x}px), calc(50% + ${offset.y}px))
-                    translate(-50%, -50%)
-                    scale(${zoomLevel})
-                  `,
+                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
                   transformOrigin: 'center center',
                   pointerEvents: 'none',
                 }}
@@ -188,11 +219,7 @@ const VideoPlayer = ({
                   width: '100%',
                   height: '100%',
                   objectFit: 'contain',
-                  transform: `
-                    translate(calc(50% + ${offset.x}px), calc(50% + ${offset.y}px))
-                    translate(-50%, -50%)
-                    scale(${zoomLevel})
-                  `,
+                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
                   transformOrigin: 'center center',
                 }}
               />
@@ -219,10 +246,10 @@ const VideoPlayer = ({
               className="p-2 bg-gray-800 text-white rounded-md"
               onClick={() => {
                 setZoomLevel(1);
-                setOffset({ x: 0, y: 0 });
+                setPanOffset({ x: 0, y: 0 });
               }}
             >
-              Reset
+              Reset Zoom
             </button>
           </div>
         </div>

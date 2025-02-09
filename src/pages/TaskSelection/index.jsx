@@ -40,71 +40,6 @@ const TaskSelection = () => {
 
   const navigate = useNavigate();
 
-  const getBoundingRectangleForRegion = task => {
-    if (
-      task.hasOwnProperty('width') &&
-      task.hasOwnProperty('height') &&
-      task.hasOwnProperty('x') &&
-      task.hasOwnProperty('y')
-    ) {
-      return task;
-    }
-    const startFrame = Math.ceil(task.start * fps);
-    const endFrame = Math.floor(task.end * fps);
-    let meanX = 0,
-      meanY = 0,
-      meanWidth = 0,
-      meanHeight = 0,
-      finalX = 20000,
-      finalY = 20000,
-      finalWidth = 0,
-      finalHeight = 0;
-    let total = 0;
-    let finalBottom = 0,
-      finalRight = 0;
-    const regionFrameBoundingBoxes = [];
-
-    for (let boundingBox of boundingBoxes) {
-      if (
-        boundingBox.frameNumber >= startFrame &&
-        boundingBox.frameNumber <= endFrame
-      )
-        regionFrameBoundingBoxes.push(boundingBox);
-    }
-
-    for (let regionFrameBoundingBox of regionFrameBoundingBoxes) {
-      if (regionFrameBoundingBox.hasOwnProperty('data')) {
-        for (let box of regionFrameBoundingBox.data) {
-          finalX = finalX > box.x ? box.x : finalX;
-          finalY = finalY > box.y ? box.y : finalY;
-          finalWidth = finalWidth < box.width ? box.width : finalWidth;
-          finalRight =
-            finalRight < box.width + box.x ? box.width + box.x : finalRight;
-          finalBottom =
-            finalBottom < box.height + box.y ? box.height + box.y : finalBottom;
-          finalHeight = finalHeight < box.height ? box.height : finalHeight;
-          //}
-        }
-      }
-    }
-
-    const data = {
-      x: finalX,
-      y: finalY,
-      width: finalRight - finalX,
-      height: finalBottom - finalY,
-    };
-    return { ...task, ...data };
-  };
-
-  useEffect(() => {
-    const newTaskBoxes = [];
-    for (let task of tasks) {
-      newTaskBoxes.push(getBoundingRectangleForRegion(task));
-    }
-    setTaskBoxes(newTaskBoxes);
-  }, [tasks]);
-
   const onTaskChange = newTask => {
     const newTasks = tasks.map(task =>
       task.id === newTask.id ? newTask : task,
@@ -127,7 +62,6 @@ const TaskSelection = () => {
   };
 
   const moveToNextScreen = () => {
-    setTaskBoxes(taskBoxes);
     navigate("/taskdetails");
   };
 
