@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 import VideoControls from './VideoControls';
 import useCanvasDrawer from './useCanvasDrawer';
 import { Button, Slider, IconButton } from '@mui/material';
@@ -24,15 +24,13 @@ const VideoPlayer = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-
   const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
-
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
 
-
+  // Initialize the canvas drawer (no changes needed here)
   useCanvasDrawer({
     videoRef,
     canvasRef,
@@ -48,7 +46,6 @@ const VideoPlayer = ({
   });
   const [currentFrame, setCurrentFrame] = useState(0);
 
-
   // Update the current frame number on each animation frame.
   useEffect(() => {
     let animationFrameId;
@@ -63,20 +60,22 @@ const VideoPlayer = ({
     return () => cancelAnimationFrame(animationFrameId);
   }, [videoRef, fps]);
 
-
-  useEffect(() => {
-    const updateSize = () => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        setContainerSize({ width: rect.width, height: rect.height });
-      }
-    };
-    updateSize();
-    window.addEventListener('resize', updateSize);
-    return () => window.removeEventListener('resize', updateSize);
+  // Extract update function for container size
+  const updateContainerSize = useCallback(() => {
+    if (containerRef.current) {
+      const rect = containerRef.current.getBoundingClientRect();
+      setContainerSize({ width: rect.width, height: rect.height });
+    }
   }, []);
 
+  // Update container size on mount and on window resize
+  useEffect(() => {
+    updateContainerSize();
+    window.addEventListener('resize', updateContainerSize);
+    return () => window.removeEventListener('resize', updateContainerSize);
+  }, [updateContainerSize]);
 
+  // Clamp panOffset when container size or zoomLevel changes.
   useEffect(() => {
     if (containerSize.width && containerSize.height) {
       const maxOffsetX = ((zoomLevel - 1) * containerSize.width) / 2;
@@ -88,7 +87,7 @@ const VideoPlayer = ({
     }
   }, [zoomLevel, containerSize]);
 
-
+  // Called when the user uploads a new video
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -96,13 +95,11 @@ const VideoPlayer = ({
     }
   };
 
-  
   const resetVideo = () => {
     setVideoData(null);
     setZoomLevel(1);
     setPanOffset({ x: 0, y: 0 });
   };
-
 
   const getTotalFrameCount = () => {
     if (videoRef.current && !isNaN(videoRef.current.duration)) {
@@ -111,7 +108,7 @@ const VideoPlayer = ({
     return 0;
   };
 
-
+  // Pointer events for panning
   const handlePointerDown = (e) => {
     if (zoomLevel > 1) {
       setIsDragging(true);
@@ -123,7 +120,6 @@ const VideoPlayer = ({
       e.target.setPointerCapture(e.pointerId);
     }
   };
-
 
   const handlePointerMove = (e) => {
     if (!isDragging || !dragStartRef.current) return;
@@ -138,14 +134,38 @@ const VideoPlayer = ({
     setPanOffset({ x: newX, y: newY });
   };
 
-
   const handlePointerUp = (e) => {
     setIsDragging(false);
     dragStartRef.current = null;
     e.target.releasePointerCapture(e.pointerId);
   };
 
-  
+  // New zoom handler that preserves the effective translation
+  const handleZoomChange = (e, value) => {
+    const newZoom = value;
+    // Compute the effective translation: the offset relative to the current zoom
+    const effectiveTranslation = {
+      x: panOffset.x / zoomLevel,
+      y: panOffset.y / zoomLevel,
+    };
+    // Calculate new pan offset so that the same effective translation is maintained.
+    let newPan = {
+      x: effectiveTranslation.x * newZoom,
+      y: effectiveTranslation.y * newZoom,
+    };
+
+    // Clamp newPan to the allowed range based on the container size and new zoom.
+    if (containerSize.width && containerSize.height) {
+      const maxOffsetX = ((newZoom - 1) * containerSize.width) / 2;
+      const maxOffsetY = ((newZoom - 1) * containerSize.height) / 2;
+      newPan.x = Math.max(-maxOffsetX, Math.min(newPan.x, maxOffsetX));
+      newPan.y = Math.max(-maxOffsetY, Math.min(newPan.y, maxOffsetY));
+    }
+
+    setZoomLevel(newZoom);
+    setPanOffset(newPan);
+  };
+
   return (
     <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-200 w-full h-full">
       {!videoURL && (
@@ -199,11 +219,16 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
+                  // Apply both zoom and pan. Note that we use division in the translate so that the
+                  // effective translation remains equal to panOffset.
                   transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
                   transformOrigin: 'center center',
                   pointerEvents: 'none',
                 }}
-                onLoadedMetadata={() => setVideoReady(true)}
+                onLoadedMetadata={() => {
+                  setVideoReady(true);
+                  updateContainerSize(); // <-- Ensure container dimensions are updated when the video loads
+                }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 loop
@@ -234,7 +259,7 @@ const VideoPlayer = ({
               max={10}
               step={0.1}
               value={zoomLevel}
-              onChange={(e, value) => setZoomLevel(value)}
+              onChange={handleZoomChange}
               aria-labelledby="Zoom"
               style={{ height: 200 }}
               valueLabelDisplay="auto"
