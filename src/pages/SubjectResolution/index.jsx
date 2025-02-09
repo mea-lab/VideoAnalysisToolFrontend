@@ -22,6 +22,7 @@ const SubjectResolution = () => {
     fps,
     setFPS,
     taskBoxes,
+    setTaskBoxes,
     persons,
     setPersons,
     boxesReady,
@@ -55,6 +56,7 @@ const SubjectResolution = () => {
             videoData={videoData}
             screen="subject_resolution"
             taskBoxes={taskBoxes}
+            setTaskBoxes={setTaskBoxes}
             videoRef={videoRef}
             boundingBoxes={boundingBoxes}
             fps={fps}

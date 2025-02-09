@@ -11,6 +11,7 @@ const useCanvasDrawer = ({
   landMarks,
   selectedTask,
   frameOffset = 0,
+  setTaskBoxes,
 }) => {
   const currentFrame = useRef(-1);
   const lastDrawnFrame = useRef(-1);
