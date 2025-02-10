@@ -391,15 +391,22 @@ const TaskDetails = () => {
                 'flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll  '
               }
             >
-              <div>Analyse the task</div>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setOpenJsonUpload(true);
-                }}
-              >
-                Analyse
-              </Button>
+              <div>Analyze the task</div>
+              <Button 
+              variant="contained"
+              onClick={() => setOpenJsonUpload(true)}
+              sx={{
+                bgcolor: 'primary.main',
+                '&:hover': { bgcolor: 'primary.dark' },
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 3,
+                py: 1,
+                fontSize: '1rem'
+              }}
+            >
+              Analyze
+            </Button>
               <JSONUploadDialog
                 dialogOpen={openJsonUpload}
                 fps={fps}

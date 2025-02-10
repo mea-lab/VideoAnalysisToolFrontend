@@ -115,9 +115,21 @@ const SubjectSelectionTab = ({
       {!boxesReady ? (
         <div className="flex flex-col items-center justify-center h-full gap-4">
           <div>Process the video to start subject selection</div>
-          <Button variant="contained" onClick={() => setOpenJsonUpload(true)}>
-            Process video
-          </Button>
+          <Button 
+          variant="contained"
+          onClick={() => setOpenJsonUpload(true)}
+          sx={{
+            bgcolor: 'primary.main',
+            '&:hover': { bgcolor: 'primary.dark' },
+            textTransform: 'none',
+            fontWeight: 'bold',
+            px: 3,
+            py: 1,
+            fontSize: '1rem'
+          }}
+        >
+          Process Video
+        </Button>
           <JSONUploadDialog
             dialogOpen={openJsonUpload}
             setDialogOpen={setOpenJsonUpload}
