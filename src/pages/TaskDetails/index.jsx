@@ -1,3 +1,4 @@
+// src/pages/TaskDetails/index.jsx
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import { useContext } from 'react';
 import { VideoContext } from '../../contexts/VideoContext';
@@ -289,9 +290,10 @@ const TaskDetails = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen max-h-screen">
-      <div className="flex flex-1 flex-row max-h-screen">
-        <div className={'flex w-1/2 max-h-screen bg-red-600 overflow-hidden'}>
+    <div className="flex flex-col h-screen">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Video Section */}
+        <div className="flex-1 min-w-[50%] bg-slate-900">
           <VideoPlayer
             videoData={videoData}
             screen={'taskDetails'}
@@ -315,8 +317,8 @@ const TaskDetails = () => {
           />
         </div>
 
-        <div className={'flex flex-col min-h-[100vh] w-1/2 overflow-auto'}>
-          <HeaderSection
+        <div className="flex-1 flex flex-col min-w-[50%] bg-slate-50 overflow-y-auto">
+            <HeaderSection
             title={'Task Details'}
             isVideoReady={videoReady}
             fileName={fileName}
@@ -389,15 +391,22 @@ const TaskDetails = () => {
                 'flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll  '
               }
             >
-              <div>Analyse the task</div>
-              <Button
-                variant="contained"
-                onClick={() => {
-                  setOpenJsonUpload(true);
-                }}
-              >
-                Analyse
-              </Button>
+              <div>Analyze the task</div>
+              <Button 
+              variant="contained"
+              onClick={() => setOpenJsonUpload(true)}
+              sx={{
+                bgcolor: 'primary.main',
+                '&:hover': { bgcolor: 'primary.dark' },
+                textTransform: 'none',
+                fontWeight: 'bold',
+                px: 3,
+                py: 1,
+                fontSize: '1rem'
+              }}
+            >
+              Analyze
+            </Button>
               <JSONUploadDialog
                 dialogOpen={openJsonUpload}
                 fps={fps}

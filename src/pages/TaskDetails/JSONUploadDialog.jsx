@@ -177,7 +177,7 @@ export default function JSONUploadDialog({
             {!serverProcessing && (
               <>
                 Upload JSON containing the task analysis data or click on
-                analyse to analyse the task automatically.
+                analyze to analyze the task automatically.
               </>
             )}
             {serverProcessing && (
@@ -213,7 +213,7 @@ export default function JSONUploadDialog({
               >
                 Analyse from JSON
               </Button>
-              <Button onClick={handleAutoProcess}>Auto Analyse</Button>
+              <Button onClick={handleAutoProcess}>Auto Analyze</Button>
             </>
           )}
         </DialogActions>

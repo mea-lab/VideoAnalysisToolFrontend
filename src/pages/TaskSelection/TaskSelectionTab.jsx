@@ -73,14 +73,21 @@ const TaskSelectionTab = ({
           }
         >
           <div>Setup the tasks</div>
-          <Button
-            variant="contained"
-            onClick={() => {
-              setOpenJsonUpload(true);
-            }}
-          >
-            Setup
-          </Button>
+          <Button 
+          variant="contained"
+          onClick={() => setOpenJsonUpload(true)}
+          sx={{
+            bgcolor: 'primary.main',
+            '&:hover': { bgcolor: 'primary.dark' },
+            textTransform: 'none',
+            fontWeight: 'bold',
+            px: 3,
+            py: 1,
+            fontSize: '1rem'
+          }}
+        >
+          Setup
+        </Button>
           <JSONUploadDialog
             dialogOpen={openJsonUpload}
             setDialogOpen={setOpenJsonUpload}

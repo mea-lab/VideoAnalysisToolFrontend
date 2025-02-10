@@ -1,7 +1,8 @@
 import React from 'react';
-import Button from '@mui/material/Button';
+import { Button, Typography } from '@mui/material';
 import { Download, NavigateNext, ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
+import { HeaderTitle } from '../../components/commons/HeaderSection';
 
 const HeaderSection = ({
   title,
@@ -37,51 +38,70 @@ const HeaderSection = ({
   };
 
   return (
-    <div
-      className={`flex px-8 h-[8vh] items-center ${
-        isVideoReady ? 'justify-between' : 'justify-center'
-      } bg-gray-500`}
-    >
-      <div className="text-3xl text-white font-semibold font-mono">{title}</div>
+    <div className={`flex px-6 py-4 items-center ${
+      isVideoReady ? 'justify-between' : 'justify-center'
+    } bg-slate-800 shadow-lg`}>
+      <HeaderTitle>{title}</HeaderTitle>
+
+      
       {isVideoReady && (
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <Button
             variant="contained"
             onClick={() => navigate('/')}
             startIcon={<ArrowBack />}
-            sx={buttonStyle}
+            sx={{
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1
+            }}
           >
-            BACK
+            Back
           </Button>
+
           <Button
             variant="contained"
             onClick={downloadConfig}
             disabled={boundingBoxes.length === 0}
             startIcon={<Download />}
             sx={{
-              ...buttonStyle,
+              bgcolor: 'secondary.main',
+              '&:hover': { bgcolor: 'secondary.dark' },
               '&:disabled': {
-                backgroundColor: '#94a3b8',
-                color: '#cbd5e1',
+                bgcolor: 'action.disabledBackground',
+                color: 'action.disabled'
               },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1
             }}
           >
-            CONFIG
+            Config
           </Button>
+
           <Button
             variant="contained"
             onClick={moveToNextScreen}
             endIcon={<NavigateNext />}
             disabled={boundingBoxes.length === 0}
             sx={{
-              ...buttonStyle,
+              bgcolor: 'success.main',
+              '&:hover': { bgcolor: 'success.dark' },
               '&:disabled': {
-                backgroundColor: '#94a3b8',
-                color: '#cbd5e1',
+                bgcolor: 'action.disabledBackground',
+                color: 'action.disabled'
               },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1
             }}
           >
-            PROCEED
+            Proceed
           </Button>
         </div>
       )}

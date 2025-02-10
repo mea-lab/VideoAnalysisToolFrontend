@@ -1,43 +1,39 @@
+//src/pages/TaskDetails/HeaderSection.jsx
 import { ArrowBack } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
+import { HeaderTitle } from '../../components/commons/HeaderSection';
 
-const HeaderSection = ({
-  title,
-  isVideoReady,
-}) => {
+
+const HeaderSection = ({ title, isVideoReady }) => {
   const navigate = useNavigate();
 
   return (
-    <div
-      className={`flex px-8 h-[8vh] items-center ${
-        isVideoReady ? 'justify-between' : 'justify-center'
-      } bg-gray-500`}
-    >
-      <div className="text-3xl text-white font-semibold font-mono">{title}</div>
-      {isVideoReady && (
-        <div className="flex gap-2">
-          {/* Back Button */}
+    <header className="bg-gray-800 py-4 px-8 shadow-lg">
+      <div className={`mx-auto flex items-center ${isVideoReady ? 'justify-between' : 'justify-center'}`}>
+      <HeaderTitle>{title}</HeaderTitle>
+        
+        {isVideoReady && (
           <Button
             variant="contained"
             onClick={() => navigate('/tasks')}
             startIcon={<ArrowBack />}
             sx={{
-              backgroundColor: '#2563eb',
-              color: '#fff',
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
               textTransform: 'none',
               fontWeight: 'bold',
-              '&:hover': {
-                backgroundColor: '#1d4ed8',
-              },
+              px: 3,
+              py: 1
             }}
           >
-            BACK
+            Back to Tasks
           </Button>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </header>
   );
 };
+
 
 export default HeaderSection;
