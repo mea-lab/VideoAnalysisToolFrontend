@@ -290,9 +290,10 @@ const TaskDetails = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen max-h-screen">
-      <div className="flex flex-1 flex-row max-h-screen">
-        <div className={'flex w-1/2 max-h-screen bg-red-600 overflow-hidden'}>
+    <div className="flex flex-col h-screen">
+      <div className="flex flex-1 overflow-hidden">
+        {/* Video Section */}
+        <div className="flex-1 min-w-[50%] bg-slate-900">
           <VideoPlayer
             videoData={videoData}
             screen={'taskDetails'}
@@ -316,8 +317,8 @@ const TaskDetails = () => {
           />
         </div>
 
-        <div className={'flex flex-col min-h-[100vh] w-1/2 overflow-auto'}>
-          <HeaderSection
+        <div className="flex-1 flex flex-col min-w-[50%] bg-slate-50 overflow-y-auto">
+            <HeaderSection
             title={'Task Details'}
             isVideoReady={videoReady}
             fileName={fileName}

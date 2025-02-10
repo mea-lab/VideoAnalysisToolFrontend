@@ -95,7 +95,7 @@ const TaskSelection = () => {
         </div>
         <div className={'flex flex-col min-h-[100vh] w-1/2 '}>
           <HeaderSection
-            title={'Task selection'}
+            title={'Task Selection'}
             isVideoReady={videoReady}
             fileName={fileName}
             fps={fps}

@@ -1,6 +1,7 @@
 import { Download, NavigateNext, ArrowBack} from '@mui/icons-material';
-import Button from '@mui/material/Button';
+import { Button, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { HeaderTitle } from '../../components/commons/HeaderSection';
 
 
 
@@ -15,6 +16,8 @@ const HeaderSection = ({
   taskBoxes,
 }) => {
   const navigate = useNavigate();
+  const theme = useTheme();
+
 
   const downloadConfig = () => {
     const fileData = {
@@ -38,79 +41,68 @@ const HeaderSection = ({
   };
 
   return (
-    <div
-      className={`flex px-8 h-[8vh] items-center ${
-        isVideoReady ? 'justify-between' : 'justify-center'
-      } bg-gray-500`}
-    >
-      <div className="text-3xl text-white font-semibold font-mono">
-        {title}
-      </div>
+    <div className={`flex px-6 py-4 items-center ${isVideoReady ? 'justify-between' : 'justify-center'} bg-slate-800 shadow-lg`}>
+        <HeaderTitle>{title}</HeaderTitle>
+
+      
       {isVideoReady && (
-        <div className="flex gap-2">
-          
+        <div className="flex gap-3">
           <Button
-          variant="contained"
-          onClick={() => navigate('/subjects')} // or any desired previous route
-          startIcon={<ArrowBack />}
-          sx={{
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            textTransform: 'none',
-            fontWeight: 'bold',
-            '&:hover': {
-              backgroundColor: '#1d4ed8',
-            },
-          }}
-        >
-          BACK
-        </Button>
-
-
+            variant="contained"
+            onClick={() => navigate('/subjects')}
+            startIcon={<ArrowBack />}
+            sx={{
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1
+            }}
+          >
+            Back
+          </Button>
 
           <Button
             variant="contained"
             onClick={downloadConfig}
             startIcon={<Download />}
             sx={{
-              backgroundColor: '#2563eb', // Tailwind's "blue-600"
-              color: '#fff',
+              bgcolor: 'secondary.main',
+              '&:hover': { bgcolor: 'secondary.dark' },
               textTransform: 'none',
               fontWeight: 'bold',
-              '&:hover': {
-                backgroundColor: '#1d4ed8', // Tailwind's "blue-700"
-              },
+              px: 3,
+              py: 1
             }}
           >
-            CONFIG
+            Config
           </Button>
+
           <Button
-          variant="contained"
-          onClick={moveToNextScreen}
-          endIcon={<NavigateNext />}
-          disabled={taskBoxes.length === 0}  // Add disabled condition
-          sx={{
-            backgroundColor: '#2563eb',
-            color: '#fff',
-            textTransform: 'none',
-            fontWeight: 'bold',
-            '&:hover': {
-              backgroundColor: '#1d4ed8',
-            },
-            // Add disabled state styling
-            '&:disabled': {
-              backgroundColor: '#94a3b8',  // Tailwind's "slate-400"
-              color: '#cbd5e1',  // Tailwind's "slate-300"
-              cursor: 'not-allowed'
-            }
-          }}
-        >
-          PROCEED
-        </Button>
+            variant="contained"
+            onClick={moveToNextScreen}
+            endIcon={<NavigateNext />}
+            disabled={taskBoxes.length === 0}
+            sx={{
+              bgcolor: 'success.main',
+              '&:hover': { bgcolor: 'success.dark' },
+              '&:disabled': {
+                bgcolor: 'action.disabledBackground',
+                color: 'action.disabled'
+              },
+              textTransform: 'none',
+              fontWeight: 'bold',
+              px: 3,
+              py: 1
+            }}
+          >
+            Proceed
+          </Button>
         </div>
       )}
     </div>
   );
 };
 
-export default HeaderSection;
+export default HeaderSection; 
