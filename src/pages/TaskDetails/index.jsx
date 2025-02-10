@@ -1,3 +1,4 @@
+// src/pages/TaskDetails/index.jsx
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import { useContext } from 'react';
 import { VideoContext } from '../../contexts/VideoContext';

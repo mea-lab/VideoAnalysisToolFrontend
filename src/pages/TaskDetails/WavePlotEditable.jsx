@@ -1,3 +1,4 @@
+// src/pages/TaskDetails/WavePlotEditable.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 
@@ -965,18 +966,20 @@ const WavePlotEditable = ({
         </div>
       )}
 
-      <button
-        onClick={addPoint}
-        className="relative bottom-2 right-8 bg-slate-800 px-2 w-36 h-10 text-white rounded-md mt-3 py-2 font-semibold hover:bg-sky-500"
-      >
-        Add Cycle
-      </button>
-      <button
-        onClick={removePoint}
-        className="relative bottom-2 bg-slate-800 px-2 w-36 h-10 text-white rounded-md mt-3 py-2 font-semibold hover:bg-sky-500"
-      >
-        Remove Cycle
-      </button>
+      <div className="flex justify-center gap-4 mt-4"> {/* Changed container */}
+          <button
+            onClick={addPoint}
+            className="bg-slate-800 px-4 py-2 text-white rounded-md font-semibold hover:bg-sky-500"
+          >
+            Add Cycle
+          </button>
+          <button
+            onClick={removePoint}
+            className="bg-slate-800 px-4 py-2 text-white rounded-md font-semibold hover:bg-sky-500"
+          >
+            Remove Cycle
+          </button>
+        </div>
       {showPopup && (
         <div className="relative top-1/2 bottom-2 bg-gray-300 hover:bg-gray-400 left-1/2 transform -translate-x-1/2 p-8 rounded-lg shadow-lg w-2/3 h-auto">
           <span>{popupMsg}</span>
