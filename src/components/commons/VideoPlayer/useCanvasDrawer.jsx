@@ -1,3 +1,4 @@
+//src/components/commons/VideoPlayer/useCanvasDrawer.jsx
 import { useEffect, useRef, useCallback } from 'react';
 
 const useCanvasDrawer = ({
@@ -51,6 +52,7 @@ const useCanvasDrawer = ({
     );
     if (boxData && boxData.data) {
       boxData.data.forEach((box) => {
+        // console.log("Canvas Coords",box.x, box.y, box.width, box.height)
         ctx.beginPath();
         ctx.strokeStyle = persons.find((p) => p.id === box.id && p.isSubject)
           ? 'green'
@@ -74,6 +76,7 @@ const useCanvasDrawer = ({
       const ctx = canvas.getContext('2d');
       // Find the task box corresponding to the current time
       const task = taskBoxes.find((t) => currentTime >= t.start && currentTime <= t.end);
+      console.log("Canvas Coords",task.x, task.y, task.width, task.height)
       if (task) {
         ctx.beginPath();
         ctx.strokeStyle = 'green';

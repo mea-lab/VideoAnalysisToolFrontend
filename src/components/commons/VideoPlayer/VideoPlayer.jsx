@@ -1,14 +1,17 @@
+// src/components/commons/VideoPlayer/VideoPlayer.jsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import VideoControls from './VideoControls';
 import useCanvasDrawer from './useCanvasDrawer';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
+import BoundingBoxesOverlay from './BoundingBoxesOverlay';
 
 const VideoPlayer = ({
   videoURL,
   videoRef,
   fps,
   boundingBoxes,
+  setBoundingBoxes,
   persons,
   setVideoReady,
   fileName,
@@ -29,6 +32,7 @@ const VideoPlayer = ({
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
+  const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
 
   // Initialize the canvas drawer (no changes needed here)
   useCanvasDrawer({
@@ -60,15 +64,13 @@ const VideoPlayer = ({
     return () => cancelAnimationFrame(animationFrameId);
   }, [videoRef, fps]);
 
-  // Extract update function for container size
+  // Update container size on mount and on window resize.
   const updateContainerSize = useCallback(() => {
     if (containerRef.current) {
       const rect = containerRef.current.getBoundingClientRect();
       setContainerSize({ width: rect.width, height: rect.height });
     }
   }, []);
-
-  // Update container size on mount and on window resize
   useEffect(() => {
     updateContainerSize();
     window.addEventListener('resize', updateContainerSize);
@@ -87,7 +89,7 @@ const VideoPlayer = ({
     }
   }, [zoomLevel, containerSize]);
 
-  // Called when the user uploads a new video
+  // Called when the user uploads a new video.
   const handleVideoUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
@@ -108,7 +110,7 @@ const VideoPlayer = ({
     return 0;
   };
 
-  // Pointer events for panning
+  // Pointer events for panning.
   const handlePointerDown = (e) => {
     if (zoomLevel > 1) {
       setIsDragging(true);
@@ -140,10 +142,10 @@ const VideoPlayer = ({
     e.target.releasePointerCapture(e.pointerId);
   };
 
-  // New zoom handler that preserves the effective translation
+  // New zoom handler that preserves the effective translation.
   const handleZoomChange = (e, value) => {
     const newZoom = value;
-    // Compute the effective translation: the offset relative to the current zoom
+    // Compute the effective translation relative to the current zoom.
     const effectiveTranslation = {
       x: panOffset.x / zoomLevel,
       y: panOffset.y / zoomLevel,
@@ -219,21 +221,36 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
-                  // Apply both zoom and pan. Note that we use division in the translate so that the
-                  // effective translation remains equal to panOffset.
                   transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
                   transformOrigin: 'center center',
                   pointerEvents: 'none',
                 }}
                 onLoadedMetadata={() => {
                   setVideoReady(true);
-                  updateContainerSize(); // <-- Ensure container dimensions are updated when the video loads
+                  updateContainerSize();
+                  setVideoDimensions({
+                    width: videoRef.current.videoWidth,
+                    height: videoRef.current.videoHeight,
+                  });
                 }}
                 onPlay={() => setIsPlaying(true)}
                 onPause={() => setIsPlaying(false)}
                 loop
               />
-
+              {boundingBoxes && (
+                <BoundingBoxesOverlay
+                  boxes={boundingBoxes}
+                  currentFrame={currentFrame}
+                  persons={persons}
+                  zoomLevel={zoomLevel}
+                  panOffset={panOffset}
+                  setBoundingBoxes={setBoundingBoxes}
+                  videoWidth={videoDimensions.width}
+                  videoHeight={videoDimensions.height}
+                />
+              )}
+              {/*
+              The canvas element has been commented out.
               <canvas
                 ref={canvasRef}
                 style={{
@@ -247,6 +264,7 @@ const VideoPlayer = ({
                   transformOrigin: 'center center',
                 }}
               />
+              */}
             </div>
 
             <VideoControls videoRef={videoRef} isPlaying={isPlaying} fps={fps} />
