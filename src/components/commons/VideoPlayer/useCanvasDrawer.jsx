@@ -27,16 +27,19 @@ const useCanvasDrawer = ({
     const canvas = canvasRef.current;
     if (canvas) {
       const ctx = canvas.getContext('2d');
+      ctx.globalCompositeOperation = 'destination-over';
       ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.globalCompositeOperation = 'source-over';
     }
   }, [canvasRef]);
-
+  
   
   const drawVideoFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (video && canvas) {
       const ctx = canvas.getContext('2d');
+      ctx.globalCompositeOperation = 'source-over';
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
   }, [videoRef, canvasRef]);
@@ -51,8 +54,8 @@ const useCanvasDrawer = ({
       (box) => box.frameNumber === currentFrame.current
     );
     if (boxData && boxData.data) {
+      console.log("bounding boxes",boxData)
       boxData.data.forEach((box) => {
-        // console.log("Canvas Coords",box.x, box.y, box.width, box.height)
         ctx.beginPath();
         ctx.strokeStyle = persons.find((p) => p.id === box.id && p.isSubject)
           ? 'green'
@@ -74,9 +77,7 @@ const useCanvasDrawer = ({
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
-      // Find the task box corresponding to the current time
       const task = taskBoxes.find((t) => currentTime >= t.start && currentTime <= t.end);
-      console.log("Canvas Coords",task.x, task.y, task.width, task.height)
       if (task) {
         ctx.beginPath();
         ctx.strokeStyle = 'green';
@@ -143,12 +144,12 @@ const useCanvasDrawer = ({
       drawVideoFrame();
       if (screen === 'tasks') {
         // drawBoundingBoxes();
-        drawTaskBoxes(currentTime);
+        // drawTaskBoxes(currentTime);
       } else if (screen === 'taskDetails') {
-        drawBoundingBoxes();
+        // drawBoundingBoxes();
         drawLandMarks(currentTime);
       } else {
-        drawBoundingBoxes();
+        // drawBoundingBoxes();
       }
     },
     [
@@ -172,6 +173,8 @@ const useCanvasDrawer = ({
     const setCanvasDimensions = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
 
     if (video.readyState >= 1) {

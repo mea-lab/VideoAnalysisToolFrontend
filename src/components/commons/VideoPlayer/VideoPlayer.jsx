@@ -249,9 +249,8 @@ const VideoPlayer = ({
                   videoHeight={videoDimensions.height}
                 />
               )}
-              {/*
-              The canvas element has been commented out.
-              <canvas
+              
+              {/* <canvas
                 ref={canvasRef}
                 style={{
                   position: 'absolute',
@@ -262,9 +261,10 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
                   transformOrigin: 'center center',
+                  background: 'transparent',
                 }}
-              />
-              */}
+              /> */}
+             
             </div>
 
             <VideoControls videoRef={videoRef} isPlaying={isPlaying} fps={fps} />

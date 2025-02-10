@@ -7,10 +7,11 @@ const BoundingBoxesOverlay = ({
   persons,
   zoomLevel,
   panOffset,
-  setBoundingBoxes, // renamed prop: we now update the real boundingBoxes state
+  setBoundingBoxes,
   videoWidth,
   videoHeight,
 }) => {
+  console.log("boxes", boxes);
   const svgRef = useRef(null);
   const resizingBoxRef = useRef(null);
   const draggingBoxRef = useRef(null);
@@ -39,13 +40,16 @@ const BoundingBoxesOverlay = ({
   };
 
   // --- Resizing Logic ---
-  const handleResizeStart = (e, box, side) => {
+  // Now we pass in personIndex so we know which item inside box.data to update.
+  const handleResizeStart = (e, box, personIndex, side) => {
     e.stopPropagation();
     e.preventDefault();
     // Convert pointer coordinates to SVG (video pixel) coordinates.
     const { x: startX, y: startY } = getSVGPoint(e);
-    const boxData = box.data[0]; // coordinates in video pixels.
+    const boxData = box.data[personIndex]; // now use the specific person’s box data.
     resizingBoxRef.current = {
+      frameNumber: box.frameNumber,
+      personIndex,
       id: boxData.id,
       startX,
       startY,
@@ -62,7 +66,7 @@ const BoundingBoxesOverlay = ({
   const handleResizeMove = (e) => {
     if (!resizingBoxRef.current) return;
     const { x, y } = getSVGPoint(e);
-    const { id, startX, startY, initialX, initialY, initialWidth, initialHeight, side } = resizingBoxRef.current;
+    const { startX, startY, initialX, initialY, initialWidth, initialHeight, side } = resizingBoxRef.current;
     let newX = initialX;
     let newY = initialY;
     let newWidth = initialWidth;
@@ -85,8 +89,15 @@ const BoundingBoxesOverlay = ({
 
     setBoundingBoxes((prevBoxes) =>
       prevBoxes.map((b) =>
-        b.data[0].id === id
-          ? { ...b, data: [{ ...b.data[0], x: newX, y: newY, width: newWidth, height: newHeight }] }
+        b.frameNumber === resizingBoxRef.current.frameNumber
+          ? {
+              ...b,
+              data: b.data.map((personBox, idx) =>
+                idx === resizingBoxRef.current.personIndex
+                  ? { ...personBox, x: newX, y: newY, width: newWidth, height: newHeight }
+                  : personBox
+              ),
+            }
           : b
       )
     );
@@ -99,13 +110,16 @@ const BoundingBoxesOverlay = ({
   };
 
   // --- Dragging Logic ---
-  const handleBoxDragStart = (e, box) => {
+  // Now pass in personIndex so we know which person’s box is being dragged.
+  const handleBoxDragStart = (e, box, personIndex) => {
     // Only allow dragging when the user clicks on the border (not the interior)
     e.stopPropagation();
     e.preventDefault();
     const { x, y } = getSVGPoint(e);
-    const boxData = box.data[0];
+    const boxData = box.data[personIndex];
     draggingBoxRef.current = {
+      frameNumber: box.frameNumber,
+      personIndex,
       id: boxData.id,
       startX: x,
       startY: y,
@@ -119,7 +133,7 @@ const BoundingBoxesOverlay = ({
   const handleBoxDragMove = (e) => {
     if (!draggingBoxRef.current) return;
     const { x, y } = getSVGPoint(e);
-    const { startX, startY, initialX, initialY, id } = draggingBoxRef.current;
+    const { startX, startY, initialX, initialY } = draggingBoxRef.current;
     const dx = x - startX;
     const dy = y - startY;
     const newX = initialX + dx;
@@ -127,8 +141,15 @@ const BoundingBoxesOverlay = ({
 
     setBoundingBoxes((prevBoxes) =>
       prevBoxes.map((b) =>
-        b.data[0].id === id
-          ? { ...b, data: [{ ...b.data[0], x: newX, y: newY }] }
+        b.frameNumber === draggingBoxRef.current.frameNumber
+          ? {
+              ...b,
+              data: b.data.map((personBox, idx) =>
+                idx === draggingBoxRef.current.personIndex
+                  ? { ...personBox, x: newX, y: newY }
+                  : personBox
+              ),
+            }
           : b
       )
     );
@@ -157,88 +178,85 @@ const BoundingBoxesOverlay = ({
     >
       {boxes
         .filter((box) => box.frameNumber === currentFrame)
-        .map((box) => {
-          const boxData = box.data[0];
-          const x = boxData.x ?? 10;
-          const y = boxData.y ?? 10;
-          const width = boxData.width ?? 200;
-          const height = boxData.height ?? 200;
-          const strokeThickness = 12.5;
-          const strokeColor = persons.find((p) => p.id === boxData.id && p.isSubject)
-            ? 'green'
-            : 'red';
-          // Log the coordinates (optional)
-          console.log("SVG Coords", x, y, width, height);
+        .map((box) =>
+          box.data.map((boxData, index) => {
+            const x = boxData.x ?? 10;
+            const y = boxData.y ?? 10;
+            const width = boxData.width ?? 200;
+            const height = boxData.height ?? 200;
+            const strokeThickness = 12.5;
+            const strokeColor = persons.find((p) => p.id === boxData.id && p.isSubject) ? 'green' : 'red';
 
-          return (
-            <g key={`${boxData.id}-${box.frameNumber}`}>
-              {/* Main bounding box (only the stroke is interactable) */}
-              <rect
-                x={x}
-                y={y}
-                width={width}
-                height={height}
-                stroke={strokeColor}
-                strokeWidth={strokeThickness}
-                fill="none"
-                pointerEvents="stroke"  // only the border (stroke) captures events
-                onMouseEnter={() => handleBoxHover(boxData.id)}
-                onMouseLeave={() => {}}
-                onClick={() => handleBoxClick(boxData.id)}
-                onPointerDown={(e) => handleBoxDragStart(e, box)}
-                style={{ cursor: 'move' }}
-              />
-              {/* Top handle: wide rectangle along the top */}
-              <rect
-                x={x + (width - (width / 4)) / 2}
-                y={y - strokeThickness / 2}
-                width={width/4}
-                height={strokeThickness}
-                fill="#4A8074"
-                stroke="white"
-                strokeWidth="2"
-                onPointerDown={(e) => handleResizeStart(e, box, 'top')}
-                style={{ cursor: 'ns-resize' }}
-              />
-              {/* Bottom handle: wide rectangle along the bottom */}
-              <rect
-                x={x + (width - (width / 4)) / 2}
-                y={y + height - strokeThickness / 2}
-                width={width/4}
-                height={strokeThickness}
-                fill="#4A8074"
-                stroke="white"
-                strokeWidth="2"
-                onPointerDown={(e) => handleResizeStart(e, box, 'bottom')}
-                style={{ cursor: 'ns-resize' }}
-              />
-              {/* Left handle: tall rectangle along the left */}
-              <rect
-                x={x - strokeThickness / 2}
-                y={y + (height - (height / 4)) / 2}
-                width={strokeThickness}
-                height={height/4}
-                fill="#4A8074"
-                stroke="white"
-                strokeWidth="2"
-                onPointerDown={(e) => handleResizeStart(e, box, 'left')}
-                style={{ cursor: 'ew-resize' }}
-              />
-              {/* Right handle: tall rectangle along the right */}
-              <rect
-                x={x + width - strokeThickness / 2}
-                y={y + (height - (height / 4)) / 2}
-                width={strokeThickness}
-                height={height/4}
-                fill="#4A8074" 
-                stroke="white"
-                strokeWidth="2"
-                onPointerDown={(e) => handleResizeStart(e, box, 'right')}
-                style={{ cursor: 'ew-resize' }}
-              />
-            </g>
-          );
-        })}
+            return (
+              <g key={`${boxData.id}-${box.frameNumber}-${index}`}>
+                {/* Main bounding box (only the stroke is interactable) */}
+                <rect
+                  x={x}
+                  y={y}
+                  width={width}
+                  height={height}
+                  stroke={strokeColor}
+                  strokeWidth={strokeThickness}
+                  fill="none"
+                  pointerEvents="stroke" // only the border (stroke) captures events
+                  onMouseEnter={() => handleBoxHover(boxData.id)}
+                  onMouseLeave={() => {}}
+                  onClick={() => handleBoxClick(boxData.id)}
+                  onPointerDown={(e) => handleBoxDragStart(e, box, index)}
+                  style={{ cursor: 'move' }}
+                />
+                {/* Top handle: wide rectangle along the top */}
+                <rect
+                  x={x + (width - width / 4) / 2}
+                  y={y - strokeThickness / 2}
+                  width={width / 4}
+                  height={strokeThickness}
+                  fill="#4A8074"
+                  stroke="white"
+                  strokeWidth="2"
+                  onPointerDown={(e) => handleResizeStart(e, box, index, 'top')}
+                  style={{ cursor: 'ns-resize' }}
+                />
+                {/* Bottom handle: wide rectangle along the bottom */}
+                <rect
+                  x={x + (width - width / 4) / 2}
+                  y={y + height - strokeThickness / 2}
+                  width={width / 4}
+                  height={strokeThickness}
+                  fill="#4A8074"
+                  stroke="white"
+                  strokeWidth="2"
+                  onPointerDown={(e) => handleResizeStart(e, box, index, 'bottom')}
+                  style={{ cursor: 'ns-resize' }}
+                />
+                {/* Left handle: tall rectangle along the left */}
+                <rect
+                  x={x - strokeThickness / 2}
+                  y={y + (height - height / 4) / 2}
+                  width={strokeThickness}
+                  height={height / 4}
+                  fill="#4A8074"
+                  stroke="white"
+                  strokeWidth="2"
+                  onPointerDown={(e) => handleResizeStart(e, box, index, 'left')}
+                  style={{ cursor: 'ew-resize' }}
+                />
+                {/* Right handle: tall rectangle along the right */}
+                <rect
+                  x={x + width - strokeThickness / 2}
+                  y={y + (height - height / 4) / 2}
+                  width={strokeThickness}
+                  height={height / 4}
+                  fill="#4A8074"
+                  stroke="white"
+                  strokeWidth="2"
+                  onPointerDown={(e) => handleResizeStart(e, box, index, 'right')}
+                  style={{ cursor: 'ew-resize' }}
+                />
+              </g>
+            );
+          })
+        )}
     </svg>
   );
 };
