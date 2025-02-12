@@ -78,7 +78,6 @@ const TaskSelection = () => {
             videoURL={videoURL}
             setVideoURL={setVideoURL}
             screen={'tasks'}
-            taskBoxes={taskBoxes}
             videoRef={videoRef}
             boundingBoxes={boundingBoxes}
             setBoundingBoxes={setBoundingBoxes}
@@ -89,6 +88,7 @@ const TaskSelection = () => {
             setVideoData={setVideoData}
             fileName={fileName}
             setFileName={setFileName}
+            taskBoxes={taskBoxes}
             setTaskBoxes={setTaskBoxes}
             videoData={videoData}
           />

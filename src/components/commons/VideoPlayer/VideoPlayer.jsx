@@ -33,24 +33,30 @@ const VideoPlayer = ({
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
+  const [frameInput, setFrameInput] = useState(0);
+  const [isEditing, setIsEditing] = useState(false);
 
-  // Initialize the canvas drawer (no changes needed here)
-  useCanvasDrawer({
-    videoRef,
-    canvasRef,
-    boundingBoxes,
-    fps,
-    persons,
-    screen,
-    taskBoxes,
-    landMarks,
-    selectedTask,
-    frameOffset,
-    setTaskBoxes,
-  });
+  // useCanvasDrawer({
+  //   videoRef,
+  //   canvasRef,
+  //   boundingBoxes,
+  //   fps,
+  //   persons,
+  //   screen,
+  //   taskBoxes,
+  //   landMarks,
+  //   selectedTask,
+  //   frameOffset,
+  //   setTaskBoxes,
+  // });
+
   const [currentFrame, setCurrentFrame] = useState(0);
+  useEffect(() => {
+    if (!isEditing) {
+      setFrameInput(currentFrame);
+    }
+  }, [currentFrame, isEditing]);
 
-  // Update the current frame number on each animation frame.
   useEffect(() => {
     let animationFrameId;
     const updateFrameNumber = () => {
@@ -199,7 +205,26 @@ const VideoPlayer = ({
                 </div>
               </div>
               <div className="flex items-center">
-                <input className="w-1/4" type="number" value={currentFrame} readOnly />
+                <input
+                  className="w-1/4"
+                  type="value"
+                  value={frameInput}
+                  onChange={(e) => setFrameInput(e.target.value)}
+                  onFocus={() => setIsEditing(true)}
+                  onBlur={() => {
+                    setIsEditing(false);
+                    const newFrame = Number(frameInput);
+                    if (!isNaN(newFrame) && videoRef.current) {
+                      videoRef.current.currentTime = newFrame / fps;
+                      setCurrentFrame(newFrame);
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.target.blur();
+                    }
+                  }}
+                />
                 <div>/</div>
                 <div>{getTotalFrameCount()}</div>
               </div>
@@ -239,14 +264,20 @@ const VideoPlayer = ({
               />
               {boundingBoxes && (
                 <BoundingBoxesOverlay
-                  boxes={boundingBoxes}
+                  boundingBoxes={boundingBoxes}
+                  setBoundingBoxes={setBoundingBoxes}
+                  taskBoxes={taskBoxes}
+                  setTaskBoxes={setTaskBoxes}
                   currentFrame={currentFrame}
                   persons={persons}
                   zoomLevel={zoomLevel}
                   panOffset={panOffset}
-                  setBoundingBoxes={setBoundingBoxes}
+                  screen={screen}
                   videoWidth={videoDimensions.width}
                   videoHeight={videoDimensions.height}
+                  selectedTask={selectedTask}
+                  landMarks={landMarks}
+                  fps={fps}
                 />
               )}
               
