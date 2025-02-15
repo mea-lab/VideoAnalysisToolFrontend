@@ -44,52 +44,6 @@ const useCanvasDrawer = ({
     }
   }, [videoRef, canvasRef]);
 
-
-  const drawBoundingBoxes = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    // Get bounding boxes for the current frame
-    const boxData = boundingBoxes.find(
-      (box) => box.frameNumber === currentFrame.current
-    );
-    if (boxData && boxData.data) {
-      console.log("bounding boxes",boxData)
-      boxData.data.forEach((box) => {
-        ctx.beginPath();
-        ctx.strokeStyle = persons.find((p) => p.id === box.id && p.isSubject)
-          ? 'green'
-          : 'red';
-        ctx.lineWidth = 8;
-        ctx.rect(box.x, box.y, box.width, box.height);
-        ctx.stroke();
-        // Draw the ID text
-        ctx.font = '32px Arial';
-        ctx.fillStyle = 'yellow';
-        ctx.fillText(box.id, box.x + 5, box.y - 5);
-      });
-    }
-  }, [boundingBoxes, persons, canvasRef]);
-
-
-  const drawTaskBoxes = useCallback(
-    (currentTime) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const task = taskBoxes.find((t) => currentTime >= t.start && currentTime <= t.end);
-      if (task) {
-        ctx.beginPath();
-        ctx.strokeStyle = 'green';
-        ctx.lineWidth = 8;
-        ctx.rect(task.x, task.y, task.width, task.height);
-        ctx.stroke();
-      }
-    },
-    [taskBoxes, canvasRef]
-  );
-
-
   const drawLandMarks = useCallback(
     (currentTime) => {
       if (!taskBoxes.length || selectedTask == null) return;
@@ -142,21 +96,14 @@ const useCanvasDrawer = ({
 
       clearCanvas();
       drawVideoFrame();
-      if (screen === 'tasks') {
-        // drawBoundingBoxes();
-        // drawTaskBoxes(currentTime);
-      } else if (screen === 'taskDetails') {
-        // drawBoundingBoxes();
+      if (screen === 'taskDetails') {
         drawLandMarks(currentTime);
-      } else {
-        // drawBoundingBoxes();
       }
     },
     [
       getFrameNumber,
       clearCanvas,
       drawVideoFrame,
-      drawBoundingBoxes,
       drawLandMarks,
       screen,
       videoRef,
@@ -164,7 +111,6 @@ const useCanvasDrawer = ({
   );
 
 
-  // Set canvas dimensions and start a continuous render loop.
   useEffect(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;

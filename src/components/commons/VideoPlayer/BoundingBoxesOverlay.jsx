@@ -1,5 +1,57 @@
 // src/components/commons/VideoPlayer/BoundingBoxesOverlay.jsx
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
+
+const ResizeHandles = ({ x, y, width, height, onResize, item, index, handleSize = 12.5 }) => {
+  const handles = [
+    {
+      side: 'top',
+      x: x + (width - width / 4) / 2,
+      y: y - handleSize / 2,
+      width: width / 4,
+      height: handleSize,
+      cursor: 'ns-resize'
+    },
+    {
+      side: 'bottom',
+      x: x + (width - width / 4) / 2,
+      y: y + height - handleSize / 2,
+      width: width / 4,
+      height: handleSize,
+      cursor: 'ns-resize'
+    },
+    {
+      side: 'left',
+      x: x - handleSize / 2,
+      y: y + (height - height / 4) / 2,
+      width: handleSize,
+      height: height / 4,
+      cursor: 'ew-resize'
+    },
+    {
+      side: 'right',
+      x: x + width - handleSize / 2,
+      y: y + (height - height / 4) / 2,
+      width: handleSize,
+      height: height / 4,
+      cursor: 'ew-resize'
+    }
+  ];
+
+  return handles.map(handle => (
+    <rect
+      key={handle.side}
+      x={handle.x}
+      y={handle.y}
+      width={handle.width}
+      height={handle.height}
+      fill="#4A8074"
+      stroke="white"
+      strokeWidth="2"
+      onPointerDown={(e) => onResize(e, item, index, handle.side)}
+      style={{ cursor: handle.cursor }}
+    />
+  ));
+};
 
 const BoundingBoxesOverlay = ({
   boundingBoxes,
@@ -18,11 +70,11 @@ const BoundingBoxesOverlay = ({
   fps,
 }) => {
   const svgRef = useRef(null);
-  const resizingBoxRef = useRef(null);
-  const draggingBoxRef = useRef(null);
   const resizingTaskRef = useRef(null);
   const draggingTaskRef = useRef(null);
+  const initialTaskBoxRef = useRef(null);
 
+  // Convert pointer events to SVG coordinates.
   const getSVGPoint = (evt) => {
     const svg = svgRef.current;
     if (!svg) return { x: evt.clientX, y: evt.clientY };
@@ -30,133 +82,15 @@ const BoundingBoxesOverlay = ({
     point.x = evt.clientX;
     point.y = evt.clientY;
     const ctm = svg.getScreenCTM();
-    if (ctm) {
-      return point.matrixTransform(ctm.inverse());
-    }
-    return { x: evt.clientX, y: evt.clientY };
+    return ctm ? point.matrixTransform(ctm.inverse()) : { x: evt.clientX, y: evt.clientY };
   };
 
-  const handleBoxHover = (boxId) => {
-  };
+  // (Empty functions for hover/click – implement as needed)
+  const handleBoxHover = (boxId) => {};
+  const handleBoxClick = (boxId) => {};
 
-  const handleBoxClick = (boxId) => {
-  };
 
-  const handleResizeStart = (e, box, personIndex, side) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const { x: startX, y: startY } = getSVGPoint(e);
-    const boxData = box.data[personIndex];
-    resizingBoxRef.current = {
-      frameNumber: box.frameNumber,
-      personIndex,
-      id: boxData.id,
-      startX,
-      startY,
-      initialX: boxData.x ?? 10,
-      initialY: boxData.y ?? 10,
-      initialWidth: boxData.width ?? 200,
-      initialHeight: boxData.height ?? 200,
-      side,
-    };
-    window.addEventListener('pointermove', handleResizeMove);
-    window.addEventListener('pointerup', handleResizeEnd);
-  };
-
-  const handleResizeMove = (e) => {
-    if (!resizingBoxRef.current) return;
-    const { x, y } = getSVGPoint(e);
-    const { startX, startY, initialX, initialY, initialWidth, initialHeight, side } =
-      resizingBoxRef.current;
-    let newX = initialX;
-    let newY = initialY;
-    let newWidth = initialWidth;
-    let newHeight = initialHeight;
-    const minSize = 10;
-    const deltaX = x - startX;
-    const deltaY = y - startY;
-    if (side === 'top') {
-      newHeight = Math.max(minSize, initialHeight - deltaY);
-      newY = initialY + (initialHeight - newHeight);
-    } else if (side === 'bottom') {
-      newHeight = Math.max(minSize, initialHeight + deltaY);
-    } else if (side === 'left') {
-      newWidth = Math.max(minSize, initialWidth - deltaX);
-      newX = initialX + (initialWidth - newWidth);
-    } else if (side === 'right') {
-      newWidth = Math.max(minSize, initialWidth + deltaX);
-    }
-    setBoundingBoxes((prevBoxes) =>
-      prevBoxes.map((b) =>
-        b.frameNumber === resizingBoxRef.current.frameNumber
-          ? {
-              ...b,
-              data: b.data.map((personBox, idx) =>
-                idx === resizingBoxRef.current.personIndex
-                  ? { ...personBox, x: newX, y: newY, width: newWidth, height: newHeight }
-                  : personBox
-              ),
-            }
-          : b
-      )
-    );
-  };
-
-  const handleResizeEnd = () => {
-    resizingBoxRef.current = null;
-    window.removeEventListener('pointermove', handleResizeMove);
-    window.removeEventListener('pointerup', handleResizeEnd);
-  };
-
-  const handleBoxDragStart = (e, box, personIndex) => {
-    e.stopPropagation();
-    e.preventDefault();
-    const { x, y } = getSVGPoint(e);
-    const boxData = box.data[personIndex];
-    draggingBoxRef.current = {
-      frameNumber: box.frameNumber,
-      personIndex,
-      id: boxData.id,
-      startX: x,
-      startY: y,
-      initialX: boxData.x ?? 10,
-      initialY: boxData.y ?? 10,
-    };
-    window.addEventListener('pointermove', handleBoxDragMove);
-    window.addEventListener('pointerup', handleBoxDragEnd);
-  };
-
-  const handleBoxDragMove = (e) => {
-    if (!draggingBoxRef.current) return;
-    const { x, y } = getSVGPoint(e);
-    const { startX, startY, initialX, initialY, personIndex, frameNumber } =
-      draggingBoxRef.current;
-    const dx = x - startX;
-    const dy = y - startY;
-    const newX = initialX + dx;
-    const newY = initialY + dy;
-    setBoundingBoxes((prevBoxes) =>
-      prevBoxes.map((b) =>
-        b.frameNumber === draggingBoxRef.current.frameNumber
-          ? {
-              ...b,
-              data: b.data.map((personBox, idx) =>
-                idx === draggingBoxRef.current.personIndex
-                  ? { ...personBox, x: newX, y: newY }
-                  : personBox
-              ),
-            }
-          : b
-      )
-    );
-  };
-
-  const handleBoxDragEnd = () => {
-    draggingBoxRef.current = null;
-    window.removeEventListener('pointermove', handleBoxDragMove);
-    window.removeEventListener('pointerup', handleBoxDragEnd);
-  };
-
+  // === Task box resizing and dragging (for the task detail view) ===
   const handleTaskResizeStart = (e, task, taskIndex, side) => {
     e.stopPropagation();
     e.preventDefault();
@@ -229,14 +163,14 @@ const BoundingBoxesOverlay = ({
   const handleTaskDragMove = (e) => {
     if (!draggingTaskRef.current) return;
     const { x, y } = getSVGPoint(e);
-    const { startX, startY, initialX, initialY, taskIndex } = draggingTaskRef.current;
+    const { startX, startY, initialX, initialY } = draggingTaskRef.current;
     const dx = x - startX;
     const dy = y - startY;
     const newX = initialX + dx;
     const newY = initialY + dy;
     setTaskBoxes((prevBoxes) =>
       prevBoxes.map((task, idx) =>
-        idx === taskIndex ? { ...task, x: newX, y: newY } : task
+        idx === draggingTaskRef.current.taskIndex ? { ...task, x: newX, y: newY } : task
       )
     );
   };
@@ -246,7 +180,6 @@ const BoundingBoxesOverlay = ({
     window.removeEventListener('pointermove', handleTaskDragMove);
     window.removeEventListener('pointerup', handleTaskDragEnd);
   };
-
 
   let taskToRender = null;
   let taskIndex = -1;
@@ -263,6 +196,55 @@ const BoundingBoxesOverlay = ({
     }
   }
 
+  useEffect(() => {
+    if (screen === 'taskDetails' && selectedTask != null && taskBoxes[selectedTask] && !initialTaskBoxRef.current) {
+      initialTaskBoxRef.current = taskBoxes[selectedTask];
+    }
+  }, [screen, selectedTask, taskBoxes]);
+
+  const renderLandmarks = () => {
+    if (!taskToRender) return null;
+
+    const offset = Math.round(taskToRender.start * fps);
+    const adjustedFrameIndex = currentFrame - offset;
+    const landmark = landMarks && landMarks[adjustedFrameIndex];
+    if (!landmark) return null;
+
+    const taskBox = {
+      ...taskToRender,
+      x: Math.max(0, taskToRender.x - taskToRender.width * 0.125),
+      y: Math.max(0, taskToRender.y - taskToRender.height * 0.125),
+    };
+
+    if (Array.isArray(landmark) && landmark.length >= 2) {
+      if (Array.isArray(landmark[0])) {
+        return landmark.map(([lx, ly], idx) => (
+          <circle
+            key={`landmark-${idx}`}
+            cx={lx + taskBox.x}
+            cy={ly + taskBox.y}
+            r={10}
+            fill="red"
+            pointerEvents="none"
+          />
+        ));
+      } else {
+        return (
+          <rect
+            x={landmark[0] + taskBox.x - 15}
+            y={landmark[1] + taskBox.y - 15}
+            width={30}
+            height={30}
+            fill="red"
+            pointerEvents="none"
+          />
+        );
+      }
+    }
+    return null;
+  };
+
+  const strokeThickness = 10
   return (
     <svg
       ref={svgRef}
@@ -278,7 +260,7 @@ const BoundingBoxesOverlay = ({
         pointerEvents: 'all',
       }}
     >
-      {/* If in tasks or taskDetails screen, draw the task box (with modification handlers) */}
+
       {(screen === 'tasks' || screen === 'taskDetails') && taskToRender ? (
         <g key={`task-${taskIndex}`}>
           <rect
@@ -287,104 +269,25 @@ const BoundingBoxesOverlay = ({
             width={taskToRender.width}
             height={taskToRender.height}
             stroke="green"
-            strokeWidth={8}
+            strokeWidth={strokeThickness}
             fill="none"
             pointerEvents="stroke"
             onPointerDown={(e) => handleTaskDragStart(e, taskToRender, taskIndex)}
             style={{ cursor: 'move' }}
           />
-          {/* Top handle */}
-          <rect
-            x={taskToRender.x + (taskToRender.width - taskToRender.width / 4) / 2}
-            y={taskToRender.y - 12.5 / 2}
-            width={taskToRender.width / 4}
-            height={12.5}
-            fill="#4A8074"
-            stroke="white"
-            strokeWidth="2"
-            onPointerDown={(e) => handleTaskResizeStart(e, taskToRender, taskIndex, 'top')}
-            style={{ cursor: 'ns-resize' }}
+          <ResizeHandles
+            x={taskToRender.x}
+            y={taskToRender.y}
+            width={taskToRender.width}
+            height={taskToRender.height}
+            handleSize={strokeThickness}
+            onResize={handleTaskResizeStart}
+            item={taskToRender}
+            index={taskIndex}
           />
-          {/* Bottom handle */}
-          <rect
-            x={taskToRender.x + (taskToRender.width - taskToRender.width / 4) / 2}
-            y={taskToRender.y + taskToRender.height - 12.5 / 2}
-            width={taskToRender.width / 4}
-            height={12.5}
-            fill="#4A8074"
-            stroke="white"
-            strokeWidth="2"
-            onPointerDown={(e) => handleTaskResizeStart(e, taskToRender, taskIndex, 'bottom')}
-            style={{ cursor: 'ns-resize' }}
-          />
-          {/* Left handle */}
-          <rect
-            x={taskToRender.x - 12.5 / 2}
-            y={taskToRender.y + (taskToRender.height - taskToRender.height / 4) / 2}
-            width={12.5}
-            height={taskToRender.height / 4}
-            fill="#4A8074"
-            stroke="white"
-            strokeWidth="2"
-            onPointerDown={(e) => handleTaskResizeStart(e, taskToRender, taskIndex, 'left')}
-            style={{ cursor: 'ew-resize' }}
-          />
-          {/* Right handle */}
-          <rect
-            x={taskToRender.x + taskToRender.width - 12.5 / 2}
-            y={taskToRender.y + (taskToRender.height - taskToRender.height / 4) / 2}
-            width={12.5}
-            height={taskToRender.height / 4}
-            fill="#4A8074"
-            stroke="white"
-            strokeWidth="2"
-            onPointerDown={(e) => handleTaskResizeStart(e, taskToRender, taskIndex, 'right')}
-            style={{ cursor: 'ew-resize' }}
-          />
-          {/* If screen is taskDetails, also render landmarks */}
-          {screen === 'taskDetails' &&
-            (() => {
-              if (!taskToRender) return null;
-              const offset = Math.round(taskToRender.start * fps);
-              const frameIndex = currentFrame - offset;
-              const landmark = landMarks && landMarks[frameIndex];
-              if (!landmark) return null;
-              // Optionally enlarge the task box (similar to useCanvasDrawer)
-              const enlargedTask = {
-                ...taskToRender,
-                x: Math.max(0, taskToRender.x - taskToRender.width * 0.125),
-                y: Math.max(0, taskToRender.y - taskToRender.height * 0.125),
-              };
-              if (Array.isArray(landmark) && landmark.length >= 2) {
-                if (Array.isArray(landmark[0])) {
-                  // Multiple landmark points
-                  return landmark.map(([lx, ly], idx) => (
-                    <circle
-                      key={`landmark-${idx}`}
-                      cx={lx + enlargedTask.x}
-                      cy={ly + enlargedTask.y}
-                      r={10}
-                      fill="red"
-                    />
-                  ));
-                } else {
-                  // Single landmark point
-                  return (
-                    <rect
-                      x={landmark[0] + enlargedTask.x - 15}
-                      y={landmark[1] + enlargedTask.y - 15}
-                      width={30}
-                      height={30}
-                      fill="red"
-                    />
-                  );
-                }
-              }
-              return null;
-            })()}
         </g>
       ) : (
-        // Otherwise, render the original bounding boxes (filtered by currentFrame)
+        // Render all bounding boxes
         boundingBoxes
           .filter((box) => box.frameNumber === currentFrame)
           .map((box) =>
@@ -393,7 +296,6 @@ const BoundingBoxesOverlay = ({
               const y = boxData.y ?? 10;
               const width = boxData.width ?? 200;
               const height = boxData.height ?? 200;
-              const strokeThickness = 12.5;
               const strokeColor = persons.find((p) => p.id === boxData.id && p.isSubject)
                 ? 'green'
                 : 'red';
@@ -409,67 +311,17 @@ const BoundingBoxesOverlay = ({
                     fill="none"
                     pointerEvents="stroke"
                     onMouseEnter={() => handleBoxHover(boxData.id)}
-                    onMouseLeave={() => {}}
                     onClick={() => handleBoxClick(boxData.id)}
-                    onPointerDown={(e) => {
-                      if (screen === 'tasks') {
-                        handleBoxDragStart(e, box, index);
-                      }
-                    }}
-                    style={{ cursor: screen === 'tasks' ? 'move' : 'default' }}
                   />
-                  {screen === 'tasks' && (
-                    <>
-                      <rect
-                        x={x + (width - width / 4) / 2}
-                        y={y - strokeThickness / 2}
-                        width={width / 4}
-                        height={strokeThickness}
-                        fill="#4A8074"
-                        stroke="white"
-                        strokeWidth="2"
-                        onPointerDown={(e) => handleResizeStart(e, box, index, 'top')}
-                        style={{ cursor: 'ns-resize' }}
-                      />
-                      <rect
-                        x={x + (width - width / 4) / 2}
-                        y={y + height - strokeThickness / 2}
-                        width={width / 4}
-                        height={strokeThickness}
-                        fill="#4A8074"
-                        stroke="white"
-                        strokeWidth="2"
-                        onPointerDown={(e) => handleResizeStart(e, box, index, 'bottom')}
-                        style={{ cursor: 'ns-resize' }}
-                      />
-                      <rect
-                        x={x - strokeThickness / 2}
-                        y={y + (height - height / 4) / 2}
-                        width={strokeThickness}
-                        height={height / 4}
-                        fill="#4A8074"
-                        stroke="white"
-                        strokeWidth="2"
-                        onPointerDown={(e) => handleResizeStart(e, box, index, 'left')}
-                        style={{ cursor: 'ew-resize' }}
-                      />
-                      <rect
-                        x={x + width - strokeThickness / 2}
-                        y={y + (height - height / 4) / 2}
-                        width={strokeThickness}
-                        height={height / 4}
-                        fill="#4A8074"
-                        stroke="white"
-                        strokeWidth="2"
-                        onPointerDown={(e) => handleResizeStart(e, box, index, 'right')}
-                        style={{ cursor: 'ew-resize' }}
-                      />
-                    </>
-                  )}
                 </g>
               );
             })
           )
+      )}
+      {screen === 'taskDetails' && (
+        <g className="landmarks-overlay">
+          {renderLandmarks()}
+        </g>
       )}
     </svg>
   );

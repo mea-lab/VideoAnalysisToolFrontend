@@ -300,6 +300,7 @@ const TaskDetails = () => {
             taskBoxes={taskBoxes}
             videoRef={videoRef}
             boundingBoxes={boundingBoxes}
+            setBoundingBoxes={setBoundingBoxes}
             fps={fps}
             persons={persons}
             fpsCallback={onFPSCalculation}
@@ -311,7 +312,7 @@ const TaskDetails = () => {
             setVideoURL={setVideoURL}
             landMarks={taskToPlotMap[selectedTaskName]?.landMarks}
             setLandMarks={handleLandMarksChange}
-            setTaskBoxes={() => {}}
+            setTaskBoxes={setTaskBoxes}
             selectedTask={selectedTask}
             frameOffset={frameOffset}
           />
@@ -415,6 +416,7 @@ const TaskDetails = () => {
                 boundingBoxes={boundingBoxes}
                 videoRef={videoRef}
                 tasks={tasks}
+                taskBoxes={taskBoxes}
                 selectedTask={selectedTask}
               />
             </div>

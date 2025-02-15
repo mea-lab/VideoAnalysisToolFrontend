@@ -50,52 +50,7 @@ export const VideoProvider = ({ children }) => {
             setVideoReady(false);
         }
     },[videoData])
-
-    //useEffect for updating task boxes when tasks changes
-    useEffect(() => {
-        if(tasks == [] || boundingBoxes == []) {
-            return
-        }
-        const newTaskBoxes = tasks.map(task => {
-          if ("x" in task && "y" in task && "width" in task && "height" in task) {
-            return task;
-          }
       
-          const startFrame = Math.ceil(task.start * fps);
-          const endFrame = Math.floor(task.end * fps);
-      
-          const regionBoxes = boundingBoxes.filter(
-            ({ frameNumber, data }) =>
-              frameNumber >= startFrame && frameNumber <= endFrame && data
-          );
-      
-          let minX = Infinity,
-            minY = Infinity,
-            maxX = -Infinity,
-            maxY = -Infinity;
-      
-          regionBoxes.forEach(box => {
-            box.data.forEach(({ x, y, width, height }) => {
-              minX = Math.min(minX, x);
-              minY = Math.min(minY, y);
-              maxX = Math.max(maxX, x + width);
-              maxY = Math.max(maxY, y + height);
-            });
-          });
-      
-          return {
-            ...task,
-            x: minX,
-            y: minY,
-            width: maxX - minX,
-            height: maxY - minY,
-          };
-        });
-      
-        setTaskBoxes(newTaskBoxes);
-      }, [tasks]);
-      
-
     return (
         <VideoContext.Provider
             value={{

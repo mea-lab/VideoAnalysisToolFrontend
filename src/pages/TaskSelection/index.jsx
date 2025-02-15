@@ -70,6 +70,61 @@ const TaskSelection = () => {
     setTasks([]);
   };
 
+  // useEffect for updating taskBoxes when tasks change.
+  useEffect(() => {
+    if (tasks.length === 0) {
+      setTaskBoxes([]);
+      return;
+    }
+
+    const newTaskBoxes = tasks.map(task => {
+      const existingBox = taskBoxes.find(box => box.id === task.id);
+      if (existingBox) {
+        return {
+          ...task,
+          x: existingBox.x,
+          y: existingBox.y,
+          width: existingBox.width,
+          height: existingBox.height,
+        };
+      } else {
+        const startFrame = Math.ceil(task.start * fps);
+        const endFrame = Math.floor(task.end * fps);
+
+        const regionBoxes = boundingBoxes.filter(
+          ({ frameNumber, data }) =>
+            frameNumber >= startFrame && frameNumber <= endFrame && data
+        );
+
+        let minX = Infinity,
+          minY = Infinity,
+          maxX = -Infinity,
+          maxY = -Infinity;
+
+        regionBoxes.forEach(box => {
+          box.data.forEach(({ x, y, width, height }) => {
+            minX = Math.min(minX, x);
+            minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x + width);
+            maxY = Math.max(maxY, y + height);
+          });
+        });
+
+        return {
+          ...task,
+          x: minX,
+          y: minY,
+          width: maxX - minX,
+          height: maxY - minY,
+        };
+      }
+    });
+
+    // console.log("Tasks",tasks)
+    // console.log("Updated Task Boxes:", newTaskBoxes);
+    setTaskBoxes(newTaskBoxes);
+  }, [tasks, boundingBoxes, fps]); // Include boundingBoxes and fps for new task computation
+
   return (
     <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
       <div className="flex flex-1 flex-row max-h-screen flex-wrap">

@@ -145,6 +145,10 @@ const TasksWaveForm = ({
     };
   }, [isVideoReady, videoRef]);
 
+  // useEffect(() => {
+  //   console.log("regionsPluginRef",regionsPluginRef)
+  // },[regionsPluginRef.current.regions])
+
   const onZoomChange = (e, zoomLevel) => {
     if (isVideoReady && waveSurferRef.current && !waveLoading) {
       waveSurferRef.current.zoom(zoomLevel);

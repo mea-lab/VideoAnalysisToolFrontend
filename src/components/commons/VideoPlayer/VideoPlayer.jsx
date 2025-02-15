@@ -36,19 +36,19 @@ const VideoPlayer = ({
   const [frameInput, setFrameInput] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
 
-  // useCanvasDrawer({
-  //   videoRef,
-  //   canvasRef,
-  //   boundingBoxes,
-  //   fps,
-  //   persons,
-  //   screen,
-  //   taskBoxes,
-  //   landMarks,
-  //   selectedTask,
-  //   frameOffset,
-  //   setTaskBoxes,
-  // });
+  useCanvasDrawer({
+    videoRef,
+    canvasRef,
+    boundingBoxes,
+    fps,
+    persons,
+    screen,
+    taskBoxes,
+    landMarks,
+    selectedTask,
+    frameOffset,
+    setTaskBoxes,
+  });
 
   const [currentFrame, setCurrentFrame] = useState(0);
   useEffect(() => {
@@ -262,6 +262,20 @@ const VideoPlayer = ({
                 onPause={() => setIsPlaying(false)}
                 loop
               />
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                  transformOrigin: 'center center',
+                  background: 'transparent',
+                }}
+              />
               {boundingBoxes && (
                 <BoundingBoxesOverlay
                   boundingBoxes={boundingBoxes}
@@ -280,22 +294,6 @@ const VideoPlayer = ({
                   fps={fps}
                 />
               )}
-              
-              {/* <canvas
-                ref={canvasRef}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                  transformOrigin: 'center center',
-                  background: 'transparent',
-                }}
-              /> */}
-             
             </div>
 
             <VideoControls videoRef={videoRef} isPlaying={isPlaying} fps={fps} />

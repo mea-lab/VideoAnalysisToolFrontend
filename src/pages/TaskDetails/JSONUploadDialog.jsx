@@ -18,6 +18,7 @@ export default function JSONUploadDialog({
   videoRef,
   fps,
   tasks,
+  taskBoxes,
   selectedTask,
 }) {
   const [fileError, setFileError] = useState('');
@@ -30,7 +31,6 @@ export default function JSONUploadDialog({
   };
 
   const handleJSONProcess = () => {
-    // setFileName("");
     setFileError('');
     handleJSONUpload(true, jsonContent);
     setDialogOpen(false);
@@ -43,31 +43,6 @@ export default function JSONUploadDialog({
   const validateJson = data => {
     return true;
   };
-
-  function computeAggregateBoundingBox(boxes) {
-    if (!boxes || boxes.length === 0) {
-      return null;
-    }
-  
-    let minX = boxes[0].data[0].x;
-    let minY = boxes[0].data[0].y;
-    let maxX = boxes[0].data[0].x + boxes[0].data[0].width;
-    let maxY = boxes[0].data[0].y + boxes[0].data[0].height;
-  
-    boxes.forEach(box => {
-      minX = Math.min(minX, box.data[0].x);
-      minY = Math.min(minY, box.data[0].y);
-      maxX = Math.max(maxX, box.data[0].x + box.data[0].width);
-      maxY = Math.max(maxY, box.data[0].y + box.data[0].height);
-    });
-  
-    return {
-      x: minX,
-      y: minY,
-      width: maxX - minX,
-      height: maxY - minY,
-    };
-  }
 
   const handleFileChange = async event => {
     const file = event.target.files[0];
@@ -107,13 +82,18 @@ export default function JSONUploadDialog({
 
       console.log("Task Data:", taskData)
       console.log("Tasks:", tasks)
+      const chosenTaskBox = taskBoxes.find(box => box.id === taskData.id);
+      const taskBoxCords = {
+        x: chosenTaskBox.x,
+        y: chosenTaskBox.y,
+        width: chosenTaskBox.width,
+        height: chosenTaskBox.height,
+      };
 
-
-      const aggregateBox = computeAggregateBoundingBox(boundingBoxes);
-      console.log("Aggregate Bounding Box:", aggregateBox);
+      console.log("task box coords", taskBoxCords)
 
       let jsonData = {
-        boundingBox: aggregateBox,
+        boundingBox: taskBoxCords,
         task_name: taskData.name,
         start_time: taskData.start,
         end_time: taskData.end,
