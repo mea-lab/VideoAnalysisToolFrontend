@@ -1,5 +1,6 @@
 import React, { useRef, useEffect, useCallback } from 'react';
 
+//Landmarks Overlay Uses Canvas Drawer for faster draws and less laggy video synchronization
 const MarksOverlay = ({
   videoRef,
   fps = 30,
