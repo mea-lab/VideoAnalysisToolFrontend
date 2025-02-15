@@ -267,7 +267,7 @@ const VideoPlayer = ({
                 onPause={() => setIsPlaying(false)}
                 loop
               />
-              {/* <MarksOverlay
+              <MarksOverlay
                 videoRef={videoRef}
                 boundingBoxes={boundingBoxes}
                 fps={fps}
@@ -278,9 +278,6 @@ const VideoPlayer = ({
                 selectedTask={selectedTask}
                 frameOffset={frameOffset}
                 setTaskBoxes={setTaskBoxes}
-              /> */}
-              <canvas
-                ref={canvasRef}
                 style={{
                   position: 'absolute',
                   top: 0,
