@@ -5,6 +5,7 @@ import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import MarksOverlay from './MarksOverlay';
 import BoxesOverlay from './BoxesOverlay';
+import useCanvasDrawer from './useCanvasDrawer';
 
 const VideoPlayer = ({
   videoURL,
@@ -28,12 +29,27 @@ const VideoPlayer = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
+  const canvasRef = useRef(null)
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [frameInput, setFrameInput] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+
+    useCanvasDrawer({
+    videoRef,
+    canvasRef,
+    boundingBoxes,
+    fps,
+    persons,
+    screen,
+    taskBoxes,
+    landMarks,
+    selectedTask,
+    frameOffset,
+    setTaskBoxes,
+  });
 
   const [currentFrame, setCurrentFrame] = useState(0);
   useEffect(() => {
@@ -251,7 +267,7 @@ const VideoPlayer = ({
                 onPause={() => setIsPlaying(false)}
                 loop
               />
-              <MarksOverlay
+              {/* <MarksOverlay
                 videoRef={videoRef}
                 boundingBoxes={boundingBoxes}
                 fps={fps}
@@ -262,6 +278,20 @@ const VideoPlayer = ({
                 selectedTask={selectedTask}
                 frameOffset={frameOffset}
                 setTaskBoxes={setTaskBoxes}
+              /> */}
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
+                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
+                  transformOrigin: 'center center',
+                  background: 'transparent',
+                }}
               />
               {boundingBoxes && (
                 <BoxesOverlay
