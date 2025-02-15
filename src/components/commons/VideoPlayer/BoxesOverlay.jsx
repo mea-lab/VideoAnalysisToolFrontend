@@ -89,7 +89,6 @@ const BoundingBoxesOverlay = ({
   const handleBoxHover = (boxId) => {};
   const handleBoxClick = (boxId) => {};
 
-
   // === Task box resizing and dragging (for the task detail view) ===
   const handleTaskResizeStart = (e, task, taskIndex, side) => {
     e.stopPropagation();
@@ -202,48 +201,6 @@ const BoundingBoxesOverlay = ({
     }
   }, [screen, selectedTask, taskBoxes]);
 
-  const renderLandmarks = () => {
-    if (!taskToRender) return null;
-
-    const offset = Math.round(taskToRender.start * fps);
-    const adjustedFrameIndex = currentFrame - offset;
-    const landmark = landMarks && landMarks[adjustedFrameIndex];
-    if (!landmark) return null;
-
-    const taskBox = {
-      ...taskToRender,
-      x: Math.max(0, taskToRender.x - taskToRender.width * 0.125),
-      y: Math.max(0, taskToRender.y - taskToRender.height * 0.125),
-    };
-
-    if (Array.isArray(landmark) && landmark.length >= 2) {
-      if (Array.isArray(landmark[0])) {
-        return landmark.map(([lx, ly], idx) => (
-          <circle
-            key={`landmark-${idx}`}
-            cx={lx + taskBox.x}
-            cy={ly + taskBox.y}
-            r={10}
-            fill="red"
-            pointerEvents="none"
-          />
-        ));
-      } else {
-        return (
-          <rect
-            x={landmark[0] + taskBox.x - 15}
-            y={landmark[1] + taskBox.y - 15}
-            width={30}
-            height={30}
-            fill="red"
-            pointerEvents="none"
-          />
-        );
-      }
-    }
-    return null;
-  };
-
   const strokeThickness = 10
   return (
     <svg
@@ -317,11 +274,6 @@ const BoundingBoxesOverlay = ({
               );
             })
           )
-      )}
-      {screen === 'taskDetails' && (
-        <g className="landmarks-overlay">
-          {renderLandmarks()}
-        </g>
       )}
     </svg>
   );

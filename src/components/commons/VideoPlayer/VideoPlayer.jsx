@@ -1,10 +1,10 @@
 // src/components/commons/VideoPlayer/VideoPlayer.jsx
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import VideoControls from './VideoControls';
-import useCanvasDrawer from './useCanvasDrawer';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
-import BoundingBoxesOverlay from './BoundingBoxesOverlay';
+import MarksOverlay from './MarksOverlay';
+import BoxesOverlay from './BoxesOverlay';
 
 const VideoPlayer = ({
   videoURL,
@@ -27,7 +27,6 @@ const VideoPlayer = ({
   const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
-  const canvasRef = useRef(null);
   const containerRef = useRef(null);
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -35,20 +34,6 @@ const VideoPlayer = ({
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [frameInput, setFrameInput] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-
-  useCanvasDrawer({
-    videoRef,
-    canvasRef,
-    boundingBoxes,
-    fps,
-    persons,
-    screen,
-    taskBoxes,
-    landMarks,
-    selectedTask,
-    frameOffset,
-    setTaskBoxes,
-  });
 
   const [currentFrame, setCurrentFrame] = useState(0);
   useEffect(() => {
@@ -174,6 +159,10 @@ const VideoPlayer = ({
     setPanOffset(newPan);
   };
 
+  useEffect(() => {
+    console.log("landMarks",landMarks)
+  },[landMarks])
+
   return (
     <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-200 w-full h-full">
       {!videoURL && (
@@ -262,22 +251,20 @@ const VideoPlayer = ({
                 onPause={() => setIsPlaying(false)}
                 loop
               />
-              <canvas
-                ref={canvasRef}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'contain',
-                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                  transformOrigin: 'center center',
-                  background: 'transparent',
-                }}
+              <MarksOverlay
+                videoRef={videoRef}
+                boundingBoxes={boundingBoxes}
+                fps={fps}
+                persons={persons}
+                screen={screen}
+                taskBoxes={taskBoxes}
+                landMarks={landMarks}
+                selectedTask={selectedTask}
+                frameOffset={frameOffset}
+                setTaskBoxes={setTaskBoxes}
               />
               {boundingBoxes && (
-                <BoundingBoxesOverlay
+                <BoxesOverlay
                   boundingBoxes={boundingBoxes}
                   setBoundingBoxes={setBoundingBoxes}
                   taskBoxes={taskBoxes}
