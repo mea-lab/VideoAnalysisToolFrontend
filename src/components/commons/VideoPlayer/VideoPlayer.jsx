@@ -5,7 +5,6 @@ import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import MarksOverlay from './MarksOverlay';
 import BoxesOverlay from './BoxesOverlay';
-import useCanvasDrawer from './useCanvasDrawer';
 
 const VideoPlayer = ({
   videoURL,
@@ -36,20 +35,6 @@ const VideoPlayer = ({
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [frameInput, setFrameInput] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-
-    useCanvasDrawer({
-    videoRef,
-    canvasRef,
-    boundingBoxes,
-    fps,
-    persons,
-    screen,
-    taskBoxes,
-    landMarks,
-    selectedTask,
-    frameOffset,
-    setTaskBoxes,
-  });
 
   const [currentFrame, setCurrentFrame] = useState(0);
   useEffect(() => {
