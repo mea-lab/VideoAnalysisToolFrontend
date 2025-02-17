@@ -12,6 +12,7 @@ const WavePlotEditable = ({
 }) => {
   const [plotData, setPlotdata] = useState(taskRecord.linePlot.data);
   const [plotTimes, setPlotTimes] = useState(taskRecord.linePlot.time);
+  const [videoCurrentTime, setVideoCurrentTime] = useState(startTime);
 
   const [velocityData, setVelocityData] = useState(
     taskRecord.velocityPlot.data,
@@ -69,7 +70,7 @@ const WavePlotEditable = ({
   const [isKeyDown, setIsKeyDown] = useState(false);
   const [isSaved, setIsSaved] = useState(false);
 
-  const [videoCurrentTime, setVideoCurrentTime] = useState(startTime); // Initialize to 0
+
 
   const plotRef = useRef(null);
 
@@ -117,17 +118,48 @@ const WavePlotEditable = ({
   ]);
 
   useEffect(() => {
-    const handleTimeUpdate = () => {
-      setVideoCurrentTime(videoRef.current.currentTime);
+    let frameId = null;
+  
+    function drawAnimationFrame() {
+      // If the video is playing, update currentTime in state
+      if (!videoRef.current.paused && !videoRef.current.ended) {
+        setVideoCurrentTime(videoRef.current.currentTime);
+        frameId = requestAnimationFrame(drawAnimationFrame);
+      }
+    }
+  
+    // Whenever the video plays, start the rAF loop
+    const handlePlay = () => {
+      if (!frameId) {
+        frameId = requestAnimationFrame(drawAnimationFrame);
+      }
     };
-
+  
+    // Whenever the video is paused or ended, cancel the rAF loop
+    const handlePause = () => {
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+        frameId = null;
+      }
+    };
+  
+    // Add event listeners
     const videoElement = videoRef.current;
-    videoElement.addEventListener('timeupdate', handleTimeUpdate);
-
+    videoElement.addEventListener('play', handlePlay);
+    videoElement.addEventListener('pause', handlePause);
+    videoElement.addEventListener('ended', handlePause);
+  
+    // Cleanup
     return () => {
-      videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+      videoElement.removeEventListener('play', handlePlay);
+      videoElement.removeEventListener('pause', handlePause);
+      videoElement.removeEventListener('ended', handlePause);
+      if (frameId) {
+        cancelAnimationFrame(frameId);
+      }
     };
-  }, []);
+  }, [videoRef]);
+  
 
   useEffect(() => {}, [revision]);
 
