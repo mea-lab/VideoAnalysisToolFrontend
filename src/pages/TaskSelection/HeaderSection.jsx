@@ -41,7 +41,7 @@ const HeaderSection = ({
   };
 
   return (
-    <div className={`flex px-6 py-4 items-center ${isVideoReady ? 'justify-between' : 'justify-center'} bg-slate-800 shadow-lg`}>
+    <div className={`flex px-6 py-4 items-center ${isVideoReady ? 'justify-between' : 'justify-center'} bg-slate-700 rounded-b-md shadow-lg`}>
         <HeaderTitle>{title}</HeaderTitle>
 
       
@@ -67,9 +67,14 @@ const HeaderSection = ({
             variant="contained"
             onClick={downloadConfig}
             startIcon={<Download />}
+            disabled={taskBoxes.length === 0}
             sx={{
-              bgcolor: 'secondary.main',
-              '&:hover': { bgcolor: 'secondary.dark' },
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
+              '&:disabled': {
+                bgcolor: 'action.disabledBackground',
+                color: 'grey.600'
+              },
               textTransform: 'none',
               fontWeight: 'bold',
               px: 3,
@@ -85,11 +90,11 @@ const HeaderSection = ({
             endIcon={<NavigateNext />}
             disabled={taskBoxes.length === 0}
             sx={{
-              bgcolor: 'success.main',
-              '&:hover': { bgcolor: 'success.dark' },
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
               '&:disabled': {
                 bgcolor: 'action.disabledBackground',
-                color: 'action.disabled'
+                color: 'grey.600'
               },
               textTransform: 'none',
               fontWeight: 'bold',

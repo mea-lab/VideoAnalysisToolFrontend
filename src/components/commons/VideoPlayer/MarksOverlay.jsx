@@ -115,7 +115,7 @@ const MarksOverlay = ({
           // Multiple landmark points
           landMark.forEach(([lx, ly]) => {
             ctx.beginPath();
-            ctx.arc(lx + taskBox.x, ly + taskBox.y, 10, 0, Math.PI * 2);
+            ctx.arc(lx + taskBox.x, ly + taskBox.y, 12.5, 0, Math.PI * 2);
             ctx.fill();
           });
         } else {

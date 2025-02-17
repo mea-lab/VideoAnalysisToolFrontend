@@ -69,7 +69,7 @@ const TaskSelectionTab = ({
       {isVideoReady && !tasksReady && (
         <div
           className={
-            'flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll  bg-gray-200 '
+            'flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-auto rounded-lg bg-gray-100 '
           }
         >
           <div>Setup the tasks</div>

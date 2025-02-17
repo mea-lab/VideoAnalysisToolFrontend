@@ -1,4 +1,3 @@
-// src/pages/SubjectResolution/index.jsx
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderSection from './HeaderSection';
@@ -6,7 +5,6 @@ import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import SubjectSelectionTab from './SubjectSelectionTab';
 import SubjectsWaveForm from './SubjectsWaveForm';
 import { VideoContext } from '../../contexts/VideoContext';
-
 
 const SubjectResolution = () => {
   const {
@@ -51,8 +49,8 @@ const SubjectResolution = () => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen max-h-screen overflow-hidden">
-      <div className="flex flex-1 flex-row flex-wrap">
+    <div className="flex flex-col min-h-screen overflow-hidden">
+      <div className="flex flex-1 w-full">
         <div className="flex w-1/2 max-h-screen bg-red-600">
           <VideoPlayer
             videoData={videoData}
@@ -72,7 +70,7 @@ const SubjectResolution = () => {
             setVideoData={setVideoData}
           />
         </div>
-        <div className="flex flex-col gap-4 min-h-[100vh] w-1/2">
+        <div className="flex flex-col gap-4 w-1/2 h-full max-h-screen overflow-y-auto">
           <HeaderSection
             title="Subject Selection"
             isVideoReady={videoReady}

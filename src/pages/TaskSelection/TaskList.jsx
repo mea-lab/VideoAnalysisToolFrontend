@@ -134,16 +134,7 @@ const TaskListLabels = ({ resetTaskSelection }) => {
       <div className={'flex gap-2'}>
         <button
           className={
-            'p-2 pl-2 px-4 rounded-md bg-blue-600 text-white font-bold flex flex-row gap-2'
-          }
-          onClick={resetTaskSelection}
-          // onClick={() => onTaskDelete(task)}
-        >
-          <RestartAlt />
-        </button>
-        <button
-          className={
-            'p-2 pl-2 px-4 rounded-md bg-blue-600 text-white font-bold flex flex-row gap-2'
+            'p-2 pl-2 px-4 rounded-md bg-blue-500 text-white font-bold flex flex-row gap-2'
           }
           onClick={resetTaskSelection}
           // onClick={() => onTaskDelete(task)}
@@ -189,7 +180,7 @@ const TaskList = ({
   return (
     <div
       className={
-        'px-10 flex-1 py-4 flex flex-col gap-4 h-full overflow-y-scroll  bg-gray-200 '
+        'px-10 flex-1 py-4 flex flex-col gap-4 h-full overflow-y-auto rounded-lg bg-gray-100'
       }
     >
       <TaskListLabels resetTaskSelection={resetTaskSelection} />

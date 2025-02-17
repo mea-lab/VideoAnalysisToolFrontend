@@ -40,9 +40,10 @@ const HeaderSection = ({
   return (
     <div className={`flex px-6 py-4 items-center ${
       isVideoReady ? 'justify-between' : 'justify-center'
-    } bg-slate-800 shadow-lg`}>
-      <HeaderTitle>{title}</HeaderTitle>
-
+    } bg-slate-700 shadow-lg rounded-b-md`}>
+      <Typography variant="h4" className="text-white" fontWeight="500">
+        {title}
+      </Typography>
       
       {isVideoReady && (
         <div className="flex gap-3">
@@ -68,11 +69,11 @@ const HeaderSection = ({
             disabled={boundingBoxes.length === 0}
             startIcon={<Download />}
             sx={{
-              bgcolor: 'secondary.main',
-              '&:hover': { bgcolor: 'secondary.dark' },
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
               '&:disabled': {
                 bgcolor: 'action.disabledBackground',
-                color: 'action.disabled'
+                color: 'grey.600'
               },
               textTransform: 'none',
               fontWeight: 'bold',
@@ -89,11 +90,11 @@ const HeaderSection = ({
             endIcon={<NavigateNext />}
             disabled={boundingBoxes.length === 0}
             sx={{
-              bgcolor: 'success.main',
-              '&:hover': { bgcolor: 'success.dark' },
+              bgcolor: 'primary.main',
+              '&:hover': { bgcolor: 'primary.dark' },
               '&:disabled': {
                 bgcolor: 'action.disabledBackground',
-                color: 'action.disabled'
+                color: 'grey.600'
               },
               textTransform: 'none',
               fontWeight: 'bold',

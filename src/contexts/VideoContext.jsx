@@ -50,7 +50,7 @@ export const VideoProvider = ({ children }) => {
             setVideoReady(false);
         }
     },[videoData])
-      
+
     return (
         <VideoContext.Provider
             value={{

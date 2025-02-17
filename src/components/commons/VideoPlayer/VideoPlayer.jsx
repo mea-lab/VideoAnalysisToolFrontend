@@ -35,6 +35,7 @@ const VideoPlayer = ({
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [frameInput, setFrameInput] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
+  const [totalFrameCount, setFrameCount] = useState(null);
 
   const [currentFrame, setCurrentFrame] = useState(0);
   useEffect(() => {
@@ -160,12 +161,8 @@ const VideoPlayer = ({
     setPanOffset(newPan);
   };
 
-  useEffect(() => {
-    console.log("landMarks",landMarks)
-  },[landMarks])
-
   return (
-    <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-200 w-full h-full">
+    <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-100 w-full h-full">
       {!videoURL && (
         <label>
           <input
@@ -183,51 +180,56 @@ const VideoPlayer = ({
       )}
 
       {videoURL && (
+        
         <div className="flex h-full items-center px-10 w-full gap-2">
           <div className="h-full w-full flex flex-col gap-2 items-center">
-            <div className="w-full flex justify-between items-center">
+            <div className="w-full flex justify-between items-center p-4">
               <div className="flex-grow flex items-center justify-center">
-                <div className="flex items-center">
-                  <div className="text-lg font-semibold">{fileName}</div>
-                  <IconButton color="error" onClick={resetVideo} title="Close Video">
-                    <Close />
-                  </IconButton>
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center p-2 rounded-lg">
+                    <div className="text-lg font-semibold text-gray-800">{fileName}</div>
+                    <IconButton color="error" onClick={resetVideo} title="Close Video" className="ml-2">
+                      <Close />
+                    </IconButton>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center">
-                <input
-                  className="w-1/4"
-                  type="value"
-                  value={frameInput}
-                  onChange={(e) => setFrameInput(e.target.value)}
-                  onFocus={() => setIsEditing(true)}
-                  onBlur={() => {
-                    setIsEditing(false);
-                    const newFrame = Number(frameInput);
-                    if (!isNaN(newFrame) && videoRef.current) {
-                      videoRef.current.currentTime = newFrame / fps;
-                      setCurrentFrame(newFrame);
-                    }
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') {
-                      e.target.blur();
-                    }
-                  }}
-                />
-                <div>/</div>
-                <div>{getTotalFrameCount()}</div>
+
+              <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 p-2 rounded-lg">
+                  <input
+                    className="w-24 text-center border rounded-lg px-2 py-1"
+                    type="value"
+                    value={frameInput}
+                    onChange={(e) => setFrameInput(e.target.value)}
+                    onFocus={() => setIsEditing(true)}
+                    onBlur={() => {
+                      setIsEditing(false);
+                      const newFrame = Number(frameInput);
+                      if (!isNaN(newFrame) && videoRef.current) {
+                        videoRef.current.currentTime = newFrame / fps;
+                        setCurrentFrame(newFrame);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.target.blur();
+                      }
+                    }}
+                  />
+                  <div className="text-gray-600">/</div>
+                  <div className="text-gray-800">{getTotalFrameCount()}</div>
+                </div>
               </div>
             </div>
-
             <div
               ref={containerRef}
-              className="relative w-full h-full overflow-hidden"
+              className="relative h-full overflow-hidden rounded-lg"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
               onPointerLeave={handlePointerUp}
-              style={{ touchAction: 'none' }}
+              style={{touchAction: 'none' }}
             >
               <video
                 src={videoURL}

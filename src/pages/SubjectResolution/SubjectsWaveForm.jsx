@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
+import HoverPlugin from 'wavesurfer.js/plugins/hover';
 import { Slider } from '@mui/material';
 
 const SubjectsWaveForm = ({ videoRef, isVideoReady }) => {
@@ -37,6 +38,13 @@ const SubjectsWaveForm = ({ videoRef, isVideoReady }) => {
     };
   };
 
+  // Initial zoom setup after waveSurfer is ready
+  const setInitialZoom = () => {
+    const duration = videoRef.current?.duration || 1;
+    const pxPerSec = (670 / duration) * 1; // Set to the initial zoom level (e.g., 1x)
+    waveSurfer.current.zoom(pxPerSec);
+  };
+
   useEffect(() => {
     if (!isVideoReady || !videoRef?.current) return;
 
@@ -45,6 +53,7 @@ const SubjectsWaveForm = ({ videoRef, isVideoReady }) => {
     }
 
     waveSurfer.current = WaveSurfer.create(getWaveSurferOptions());
+    waveSurfer.current.registerPlugin(HoverPlugin.create({}));
 
     waveSurfer.current.on('loading', percent => {
       setLoadPercent(percent);
@@ -53,6 +62,7 @@ const SubjectsWaveForm = ({ videoRef, isVideoReady }) => {
 
     waveSurfer.current.on('ready', () => {
       setWaveLoading(false);
+      setInitialZoom();  // Ensure initial zoom level after waveform is ready
     });
 
     return () => {
@@ -84,7 +94,7 @@ const SubjectsWaveForm = ({ videoRef, isVideoReady }) => {
       )}
       <div
         id="waveform"
-        className="w-full px-8 py-2 overflow-x-scroll overflow-y-hidden"
+        className="w-full px-8 py-2 overflow-x-auto" // Change from overflow-x-scroll to overflow-x-auto
         ref={waveformRef}
       />
     </div>

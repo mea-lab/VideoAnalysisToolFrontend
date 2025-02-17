@@ -9,7 +9,7 @@ const HeaderSection = ({ title, isVideoReady }) => {
   const navigate = useNavigate();
 
   return (
-    <header className="bg-gray-800 py-4 px-8 shadow-lg">
+    <header className="bg-slate-700 rounded-b-md py-4 px-8 shadow-lg">
       <div className={`mx-auto flex items-center ${isVideoReady ? 'justify-between' : 'justify-center'}`}>
       <HeaderTitle>{title}</HeaderTitle>
         

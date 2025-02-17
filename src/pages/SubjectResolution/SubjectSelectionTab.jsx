@@ -6,18 +6,18 @@ import JSONUploadDialog from './SubjectJSONUploadDialog';
 const PersonRow = ({ person, onPlay, onToggleSubject }) => (
   <li
     className={`flex items-center justify-between p-2 rounded-lg transition-colors duration-150 ${
-      person.isSubject ? 'bg-teal-500 text-white' : 'bg-gray-100 hover:bg-gray-200'
+      person.isSubject ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-gray-100 hover:bg-gray-200'
     }`}
   >
     <div className="flex items-center">
       <PlayCircleOutline onClick={() => onPlay(person.timestamp)} className="cursor-pointer" />
       <span className="ml-2 font-medium">{person.name}</span>
-      <span className="ml-4 text-sm text-gray-500">{person.timestamp}</span>
+      <span className="ml-4 text-sm">{person.timestamp}</span>
     </div>
     <button
       onClick={() => onToggleSubject(person)}
       className={`px-4 py-1 rounded text-xs font-semibold shadow-sm transition-colors duration-150 ${
-        person.isSubject ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-teal-600 hover:bg-teal-700 text-white'
+        person.isSubject ? 'bg-red-500 hover:bg-red-600 text-white' : 'bg-emerald-600 hover:bg-emerald-700 text-white'
       }`}
     >
       {person.isSubject ? 'Remove Subject' : 'Mark as Subject'}
