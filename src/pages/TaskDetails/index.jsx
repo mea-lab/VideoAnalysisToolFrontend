@@ -1,4 +1,3 @@
-// src/pages/TaskDetails/index.jsx
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import { useContext } from 'react';
 import { VideoContext } from '../../contexts/VideoContext';
@@ -66,18 +65,16 @@ const TaskDetails = () => {
   const [frameOffset, setFrameOffset] = useState(0);
 
   useEffect(() => {
-
     if(!videoReady) {
-      return
+      return;
     }
 
-    console.log("Tasks:", tasks)
+    console.log("Tasks:", tasks);
     const taskData = tasks[selectedTask];
     const startTime = taskData.start;
 
-    console.log("Setting task name to...", tasks[selectedTask].name)
+    console.log("Setting task name to...", tasks[selectedTask].name);
     setSelectedTaskName(tasks[selectedTask].name);
-
 
     videoRef.current.currentTime = startTime;
 
@@ -93,14 +90,10 @@ const TaskDetails = () => {
     setVideoReady(true);
   };
 
-  useEffect(() => {
-    // console.log(JSON.stringify(taskToPlotMap));
-  }, [taskToPlotMap]);
-
   const handleProcessing = (jsonFileUploaded, jsonContent) => {
     if (jsonFileUploaded && jsonContent !== null) {
       if (jsonContent.hasOwnProperty('linePlot')) {
-        let updatedRecord = taskToPlotMap[selectedTaskName];
+        let updatedRecord = taskToPlotMap[selectedTaskName] || {};
 
         if (jsonContent.hasOwnProperty('linePlot')) {
           updatedRecord = {
@@ -139,7 +132,6 @@ const TaskDetails = () => {
           };
           setLandMarks(jsonContent.landMarks);
         }
-        //save all landmarks --  this is new
         if (jsonContent.hasOwnProperty('allLandMarks')) {
           updatedRecord = {
             ...updatedRecord,
@@ -147,7 +139,6 @@ const TaskDetails = () => {
           };
           setAllLandMarks(jsonContent.allLandMarks);
         }
-        // end of new
         if (jsonContent.hasOwnProperty('normalization_landmarks')) {
           updatedRecord = {
             ...updatedRecord,
@@ -169,8 +160,6 @@ const TaskDetails = () => {
           fileName: fileName.replace(/\.[^/.]+$/, ''),
         };
 
-        //console.log("updated record is :: " + updatedRecord);
-
         let taskToPlotMap_New = { ...taskToPlotMap };
         taskToPlotMap_New[selectedTaskName] = updatedRecord;
 
@@ -178,16 +167,12 @@ const TaskDetails = () => {
       } else {
         console.log('Error while reading the json content of graph');
       }
-
       setDataReady(true);
-    } else {
-      //setDataReady(true);
     }
   };
 
   const resetTask = () => {
     let newTaskToPlotMap = { ...taskToPlotMap };
-
     if (newTaskToPlotMap.hasOwnProperty(selectedTaskName)) {
       newTaskToPlotMap[selectedTaskName] = null;
       setTaskToPlotMap(newTaskToPlotMap);
@@ -195,7 +180,7 @@ const TaskDetails = () => {
   };
 
   const DownloadCurrentTask = () => {
-    console.log("Downloading task name", selectedTaskName)
+    console.log("Downloading task name", selectedTaskName);
     const fileData = taskToPlotMap[selectedTaskName];
 
     const downloadContent = {
@@ -211,17 +196,17 @@ const TaskDetails = () => {
       },
       radarTable: fileData.radarTable,
       landMarks: fileData.landMarks,
-      allLandMarks: fileData.allLandMarks, //this is new
+      allLandMarks: fileData.allLandMarks,
       normalization_landmarks: fileData.normalizationLandMarks,
       normalization_factor: fileData.normalizationFactor,
     };
+
     const json = JSON.stringify(downloadContent);
     const blob = new Blob([json], { type: 'application/json' });
     const href = URL.createObjectURL(blob);
 
     const link = document.createElement('a');
     link.href = href;
-    console.log("Selected Task Name",selectedTaskName);
     link.download =
       fileName.replace(/\.[^/.]+$/, '') + '_' + selectedTaskName + '.json';
     document.body.appendChild(link);
@@ -259,8 +244,6 @@ const TaskDetails = () => {
       );
       if (response.ok) {
         const data = await response.json();
-        // let newJsonData = { ...taskRecord };
-
         if (true) {
           handleProcessing(true, data);
         } else {
@@ -276,7 +259,6 @@ const TaskDetails = () => {
 
   const updateNewLandMarks = newLandMarks => {
     let newTaskToPlotMap = { ...taskToPlotMap };
-
     if (newTaskToPlotMap.hasOwnProperty(selectedTaskName)) {
       newTaskToPlotMap[selectedTaskName].landMarks = newLandMarks;
       setTaskToPlotMap(newTaskToPlotMap);
@@ -318,8 +300,9 @@ const TaskDetails = () => {
           />
         </div>
 
+        {/* Right panel with details & graph */}
         <div className="flex-1 flex flex-col min-w-[50%] bg-slate-50 overflow-y-auto">
-            <HeaderSection
+          <HeaderSection
             title={'Task Details'}
             isVideoReady={videoReady}
             fileName={fileName}
@@ -328,10 +311,11 @@ const TaskDetails = () => {
             taskBoxes={taskBoxes}
           />
 
-          <div className={'flex items-center justify-center gap-2 mt-2 mb-4'}>
-            <div className={'text-lg font-bold'}>Current task -</div>
+          {/* Task selector and reset/download controls */}
+          <div className="flex items-center justify-center gap-2 mt-2 mb-4">
+            <div className="text-lg font-bold">Current task -</div>
             <select
-              className={'text-lg'}
+              className="text-lg border border-gray-300 rounded-md px-2 py-1"
               name="Tasks"
               id="tasks"
               value={selectedTask}
@@ -345,57 +329,11 @@ const TaskDetails = () => {
                 </option>
               ))}
             </select>
-            <button
-              className={
-                'p-2 pl-2 px-4 rounded-md bg-blue-600 text-white font-bold flex flex-row gap-2'
-              }
-              onClick={resetTask}
-            >
-              <RestartAlt /> Reset
-            </button>
-            {taskToPlotMap[selectedTaskName] != null && (
-              <button
-                className={
-                  'p-2 pl-2 px-4 rounded-md bg-blue-600 text-white font-bold flex flex-row gap-2'
-                }
-                onClick={DownloadCurrentTask}
-              >
-                <CloudDownload />
-              </button>
-            )}
-          </div>
-
-          <div className={'flex items-center justify-center gap-2 mt-2 mb-4'}>
-            <div className={'font-bold'}>Adjust frame offset</div>
-            <button
-              className={'p-2 bg-blue-700 px-4 text-white'}
-              onClick={() => {
-                setFrameOffset(prevVal => prevVal - 1);
-              }}
-            >
-              -
-            </button>
-            <div>{frameOffset}</div>
-            <button
-              className={'p-2 bg-blue-700 px-4 text-white'}
-              onClick={() => {
-                setFrameOffset(prevVal => prevVal + 1);
-              }}
-            >
-              +
-            </button>
-          </div>
-
-          {taskToPlotMap[selectedTaskName] == null && (
-            <div
-              className={
-                'flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll  '
-              }
-            >
-              <div>Analyze the task</div>
-              <Button 
+            
+            <Button
               variant="contained"
-              onClick={() => setOpenJsonUpload(true)}
+              onClick={resetTask}
+              startIcon={<RestartAlt />}
               sx={{
                 bgcolor: 'primary.main',
                 '&:hover': { bgcolor: 'primary.dark' },
@@ -403,11 +341,85 @@ const TaskDetails = () => {
                 fontWeight: 'bold',
                 px: 3,
                 py: 1,
-                fontSize: '1rem'
               }}
             >
-              Analyze
+              Reset
             </Button>
+
+            {taskToPlotMap[selectedTaskName] != null && (
+              <Button
+                variant="contained"
+                onClick={DownloadCurrentTask}
+                startIcon={<CloudDownload />}
+                sx={{
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1,
+                }}
+              >
+                Download
+              </Button>
+            )}
+          </div>
+
+          {/* Frame offset controls */}
+          <div className="flex items-center justify-center gap-2 mt-2 mb-4">
+            <div className="font-bold">Adjust frame offset</div>
+            <Button
+              variant="contained"
+              onClick={() => setFrameOffset(prevVal => prevVal - 1)}
+              sx={{
+                minWidth: '40px',
+                fontWeight: 'bold',
+                px: 2,
+                py: 1,
+              }}
+            >
+              -
+            </Button>
+
+            <div>{frameOffset}</div>
+
+            <Button
+              variant="contained"
+              onClick={() => setFrameOffset(prevVal => prevVal + 1)}
+              sx={{
+                minWidth: '40px',
+                fontWeight: 'bold',
+                px: 2,
+                py: 1,
+              }}
+            >
+              +
+            </Button>
+          </div>
+
+          {/* Conditional rendering of plot or "Analyze" */}
+          {taskToPlotMap[selectedTaskName] == null && (
+            <div
+              className={
+                'flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll'
+              }
+            >
+              <div>Analyze the task</div>
+              <Button
+                variant="contained"
+                onClick={() => setOpenJsonUpload(true)}
+                sx={{
+                  bgcolor: 'primary.main',
+                  '&:hover': { bgcolor: 'primary.dark' },
+                  textTransform: 'none',
+                  fontWeight: 'bold',
+                  px: 3,
+                  py: 1,
+                  fontSize: '1rem',
+                }}
+              >
+                Analyze
+              </Button>
               <JSONUploadDialog
                 dialogOpen={openJsonUpload}
                 fps={fps}
