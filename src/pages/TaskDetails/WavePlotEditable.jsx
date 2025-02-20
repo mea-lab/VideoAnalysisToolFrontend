@@ -1,4 +1,3 @@
-// src/pages/TaskDetails/WavePlotEditable.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import Button from '@mui/material/Button'; // <--- import MUI Button
@@ -80,9 +79,10 @@ const WavePlotEditable = ({
     setRevision(revision + 1);
   }, [taskRecord]);
 
-  // Track current video time
+  // 1) Use requestAnimationFrame to track current video time when playing
   useEffect(() => {
     let frameId = null;
+
     function drawAnimationFrame() {
       if (!videoRef.current.paused && !videoRef.current.ended) {
         setVideoCurrentTime(videoRef.current.currentTime);
@@ -100,6 +100,8 @@ const WavePlotEditable = ({
         cancelAnimationFrame(frameId);
         frameId = null;
       }
+      // Ensure final time is set on pause
+      setVideoCurrentTime(videoRef.current.currentTime);
     };
 
     const videoElement = videoRef.current;
@@ -107,25 +109,34 @@ const WavePlotEditable = ({
     videoElement.addEventListener('pause', handlePause);
     videoElement.addEventListener('ended', handlePause);
 
+    // 2) ALSO listen for any time changes (e.g. user seeks, arrow keys, etc.)
+    const handleTimeUpdate = () => {
+      setVideoCurrentTime(videoElement.currentTime);
+      // Force re-render of the plot shapes:
+      setRevision((r) => r + 1);
+    };
+    videoElement.addEventListener('timeupdate', handleTimeUpdate);
+
     return () => {
       videoElement.removeEventListener('play', handlePlay);
       videoElement.removeEventListener('pause', handlePause);
       videoElement.removeEventListener('ended', handlePause);
+
+      videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+
       if (frameId) {
         cancelAnimationFrame(frameId);
       }
     };
   }, [videoRef]);
 
+  // Keydown / Keyup handlers
   useEffect(() => {
     document.addEventListener('keydown', handleKeyDown);
-    document.addEventListener('keyup', event => {
-      if (event.isComposing || event.code === 229) return;
-      handleKeyUp(event);
-    });
+    document.addEventListener('keyup', handleKeyUp);
     return () => {
-      document.removeEventListener('keyup', handleKeyUp);
       document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
     };
   }, [
     isMarkUp,
@@ -136,7 +147,7 @@ const WavePlotEditable = ({
     isAddNewPeakLowEnd,
   ]);
 
-  const handleKeyUp = event => {
+  const handleKeyUp = (event) => {
     setIsKeyDown(false);
     switch (event.code) {
       case 'KeyQ':
@@ -153,7 +164,7 @@ const WavePlotEditable = ({
     }
   };
 
-  const handleKeyDown = event => {
+  const handleKeyDown = (event) => {
     if (!isKeyDown) {
       setIsKeyDown(true);
       switch (event.code) {
@@ -253,7 +264,8 @@ const WavePlotEditable = ({
     }
   };
 
-  const handleClickonPlot = data => {
+  const handleClickonPlot = (data) => {
+    // Sync video with clicked time
     videoRef.current.currentTime = data.points[0].x;
     videoRef.current.pause();
 
@@ -350,10 +362,7 @@ const WavePlotEditable = ({
         const idx = selectedPoint.idx;
         const newX = data.points[0].x;
         // Ensure new peak is within the current start/end
-        if (
-          newX > valleysStartTime[idx] &&
-          newX < valleysEndTimes[idx]
-        ) {
+        if (newX > valleysStartTime[idx] && newX < valleysEndTimes[idx]) {
           let newPeaksData = [...peaksData];
           let newPeaksTime = [...peaksTimes];
           newPeaksData[idx] = data.points[0].y;
@@ -371,7 +380,7 @@ const WavePlotEditable = ({
     }
   };
 
-  const addNewPeakAndValley = data => {
+  const addNewPeakAndValley = (data) => {
     // Standard 3-step cycle: valley_start -> peak -> valley_end
     const xVal = data.points[0].x;
     const yVal = data.points[0].y;
@@ -463,7 +472,7 @@ const WavePlotEditable = ({
     setRemoveCycle(false);
   };
 
-  const showPopUp = msg => {
+  const showPopUp = (msg) => {
     setPopupMsg(msg);
     setShowPopup(true);
   };
@@ -478,7 +487,7 @@ const WavePlotEditable = ({
     closePopup();
   };
 
-  const getNextClosestPoint = newX => {
+  const getNextClosestPoint = (newX) => {
     let min = endTime;
     for (let i = 0; i < valleysStartTime.length; i++) {
       if (valleysStartTime[i] > newX && valleysStartTime[i] < min) {
@@ -488,7 +497,7 @@ const WavePlotEditable = ({
     return min;
   };
 
-  const validatePeak = newX => {
+  const validatePeak = (newX) => {
     let newvalleyStart = valleysStartTime[valleysStartTime.length - 1];
     if (newX < newvalleyStart) return false;
     for (let i = 0; i < peaksTimes.length; i++) {
@@ -505,7 +514,7 @@ const WavePlotEditable = ({
     return true;
   };
 
-  const validateValleyEnd = newX => {
+  const validateValleyEnd = (newX) => {
     let newPeak = peaksTimes[peaksTimes.length - 1];
     if (newX < newPeak) return false;
     for (let i = 0; i < valleysEndTimes.length; i++) {
@@ -521,7 +530,7 @@ const WavePlotEditable = ({
     return true;
   };
 
-  const isBetweenValleys = newX => {
+  const isBetweenValleys = (newX) => {
     for (let i = 0; i < valleysStartTime.length; i++) {
       if (newX >= valleysStartTime[i] && newX <= valleysEndTimes[i]) {
         return true;
@@ -697,7 +706,7 @@ const WavePlotEditable = ({
             },
           ]}
           revision={revision}
-          onClick={data => handleClickonPlot(data)}
+          onClick={(data) => handleClickonPlot(data)}
           config={{
             modeBarButtonsToRemove: [
               'zoom2d',
@@ -728,7 +737,7 @@ const WavePlotEditable = ({
         />
       </div>
 
-      {/* Button row - styled like header's Back button */}
+      {/* Button row */}
       <div className="flex justify-center gap-4 mt-4">
         <Button
           variant="contained"
