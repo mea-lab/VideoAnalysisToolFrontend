@@ -119,9 +119,6 @@ const TaskSelection = () => {
         };
       }
     });
-
-    // console.log("Tasks",tasks)
-    // console.log("Updated Task Boxes:", newTaskBoxes);
     setTaskBoxes(newTaskBoxes);
   }, [tasks, boundingBoxes, fps]); // Include boundingBoxes and fps for new task computation
 

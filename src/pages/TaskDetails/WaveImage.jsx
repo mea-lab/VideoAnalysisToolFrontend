@@ -1,7 +1,4 @@
 import React, { useEffect, useState } from 'react';
-import Plot from 'react-plotly.js';
-import Popup from './Popup';
-import './Popup.css';
 import WavePlotEditable from './WavePlotEditable';
 
 const WaveImage = ({
@@ -23,14 +20,6 @@ const WaveImage = ({
         y: taskRecord.linePlot.data,
         x: taskRecord.linePlot.time,
         mode: 'lines',
-
-        // modeBarButtonsToAdd: [{
-        //       name: 'custom button',
-        //       icon: Icons['home'],
-        //       click: function() {
-        //           console.log('hello world');
-        //       }
-        //   }]
       },
       {
         y: taskRecord.peaks.data,
@@ -70,12 +59,6 @@ const WaveImage = ({
       font: {
         size: 6,
       },
-      // yaxis: {
-      //     automargin: true
-      // },
-      // xaxis: {
-      //     automargin: true
-      // }
       margin: {
         t: 20, //top margin
         l: 25, //left margin
@@ -135,13 +118,6 @@ const WaveImage = ({
         <span>⤢</span> {/* Unicode character for maximize icon */}
       </button>
       <div id="graph-container">
-        {/* <Plot
-        data={plotlyData}
-        layout={plotlyLayout}
-        config={plotlyConfig}
-        editable= {true}
-        onClick={(data) => handleClickonPlot(data)}
-      /> */}
         {!isPopupVisible && (
           <WavePlotEditable
             taskRecord={taskRecord}
@@ -153,16 +129,7 @@ const WaveImage = ({
           />
         )}
       </div>
-      {isPopupVisible && (
-        <Popup
-          taskRecord={taskRecord}
-          videoRef={videoRef}
-          onClose={closePopup}
-        />
-      )}
     </div>
-
-    // <div></div>
   );
 };
 

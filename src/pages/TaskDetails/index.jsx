@@ -7,6 +7,7 @@ import Button from '@mui/material/Button';
 import JSONUploadDialog from './JSONUploadDialog';
 import PlotWidget from './PlotWidget';
 import { RestartAlt, CloudDownload, TouchApp } from '@mui/icons-material';
+import { json } from 'react-router-dom';
 
 function useDebounce(callback, delay) {
   const argsRef = useRef();
@@ -91,6 +92,7 @@ const TaskDetails = () => {
   };
 
   const handleProcessing = (jsonFileUploaded, jsonContent) => {
+    console.log("Returned json content",jsonContent)
     if (jsonFileUploaded && jsonContent !== null) {
       if (jsonContent.hasOwnProperty('linePlot')) {
         let updatedRecord = taskToPlotMap[selectedTaskName] || {};
@@ -363,38 +365,6 @@ const TaskDetails = () => {
                 Download
               </Button>
             )}
-          </div>
-
-          {/* Frame offset controls */}
-          <div className="flex items-center justify-center gap-2 mt-2 mb-4">
-            <div className="font-bold">Adjust frame offset</div>
-            <Button
-              variant="contained"
-              onClick={() => setFrameOffset(prevVal => prevVal - 1)}
-              sx={{
-                minWidth: '40px',
-                fontWeight: 'bold',
-                px: 2,
-                py: 1,
-              }}
-            >
-              -
-            </Button>
-
-            <div>{frameOffset}</div>
-
-            <Button
-              variant="contained"
-              onClick={() => setFrameOffset(prevVal => prevVal + 1)}
-              sx={{
-                minWidth: '40px',
-                fontWeight: 'bold',
-                px: 2,
-                py: 1,
-              }}
-            >
-              +
-            </Button>
           </div>
 
           {/* Conditional rendering of plot or "Analyze" */}

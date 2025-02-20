@@ -27,7 +27,7 @@ const HeaderSection = ({ title, isVideoReady }) => {
               py: 1
             }}
           >
-            Back to Tasks
+            Back
           </Button>
         )}
       </div>

@@ -137,28 +137,14 @@ const TasksWaveForm = ({
   
     const startChanged = Math.abs(taskToUpdate.start - startTime) > 0.001;
     const endChanged = Math.abs(taskToUpdate.end - endTime) > 0.001;
-
-    if (event && event.source === 'start') {
-      if (startChanged) {
-        if (videoRef.current) {
-          videoRef.current.currentTime = startTime;
-        }
+    console.log("startChanged",startChanged)
+    if (startChanged) {
+      if (videoRef.current) {
+        videoRef.current.currentTime = startTime;
       }
-    } else if (event && event.source === 'end') {
-      if (endChanged) {
-        if (videoRef.current) {
-          videoRef.current.currentTime = endTime;
-        }
-      }
-    } else {
-      if (startChanged) {
-        if (videoRef.current) {
-          videoRef.current.currentTime = startTime;
-        }
-      } else if (endChanged) {
-        if (videoRef.current) {
-          videoRef.current.currentTime = endTime;
-        }
+    } else if (endChanged) {
+      if (videoRef.current) {
+        videoRef.current.currentTime = endTime;
       }
     }
   };

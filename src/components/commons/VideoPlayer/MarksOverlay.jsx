@@ -14,6 +14,7 @@ const MarksOverlay = ({
   setTaskBoxes,
   style,
 }) => {
+  // console.log("landmarks",landMarks)
   const canvasRef = useRef(null);
   const currentFrame = useRef(-1);
   const lastDrawnFrame = useRef(-1);
