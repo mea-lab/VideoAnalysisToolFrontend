@@ -1,4 +1,3 @@
-// src/pages/TaskDetails/WavePlotEditable.jsx
 import React, { useState, useRef, useEffect } from 'react';
 import Plot from 'react-plotly.js';
 import Button from '@mui/material/Button';
@@ -87,10 +86,11 @@ const WavePlotEditable = ({
     incrementRevision();
   }, [taskRecord]);
 
-  // Track current video time
+  // 1) Use requestAnimationFrame to track current video time when playing
   useEffect(() => {
     let frameId = null;
-    const drawAnimationFrame = () => {
+
+    function drawAnimationFrame() {
       if (!videoRef.current.paused && !videoRef.current.ended) {
         setVideoCurrentTime(videoRef.current.currentTime);
         frameId = requestAnimationFrame(drawAnimationFrame);
@@ -105,6 +105,8 @@ const WavePlotEditable = ({
         cancelAnimationFrame(frameId);
         frameId = null;
       }
+      // Ensure final time is set on pause
+      setVideoCurrentTime(videoRef.current.currentTime);
     };
 
     const videoElement = videoRef.current;
@@ -112,14 +114,43 @@ const WavePlotEditable = ({
     videoElement.addEventListener('pause', handlePause);
     videoElement.addEventListener('ended', handlePause);
 
+    // 2) ALSO listen for any time changes (e.g. user seeks, arrow keys, etc.)
+    const handleTimeUpdate = () => {
+      setVideoCurrentTime(videoElement.currentTime);
+      // Force re-render of the plot shapes:
+      setRevision((r) => r + 1);
+    };
+    videoElement.addEventListener('timeupdate', handleTimeUpdate);
+
     return () => {
       videoElement.removeEventListener('play', handlePlay);
       videoElement.removeEventListener('pause', handlePause);
       videoElement.removeEventListener('ended', handlePause);
+
+      videoElement.removeEventListener('timeupdate', handleTimeUpdate);
+
       if (frameId) cancelAnimationFrame(frameId);
     };
   }, [videoRef]);
 
+  // Keydown / Keyup handlers
+  useEffect(() => {
+    document.addEventListener('keydown', handleKeyDown);
+    document.addEventListener('keyup', handleKeyUp);
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [
+    isMarkUp,
+    selectedPoint,
+    revision,
+    isAddNewPeakHigh,
+    isAddNewPeakLowStart,
+    isAddNewPeakLowEnd,
+  ]);
+
+  const handleKeyUp = (event) => {
   // Key event handlers
   const handleKeyUp = event => {
     setIsKeyDown(false);
@@ -138,7 +169,7 @@ const WavePlotEditable = ({
     }
   };
 
-  const handleKeyDown = event => {
+  const handleKeyDown = (event) => {
     if (!isKeyDown) {
       setIsKeyDown(true);
       switch (event.code) {
@@ -213,9 +244,9 @@ const WavePlotEditable = ({
     };
   }, [isMarkUp, selectedPoint, revision, isAddNewPeakHigh, isAddNewPeakLowStart, isAddNewPeakLowEnd]);
 
-  const handleClickonPlot = data => {
-    const { x, y, data: plotDatum } = data.points[0];
-    videoRef.current.currentTime = x;
+  const handleClickonPlot = (data) => {
+    // Sync video with clicked time
+    videoRef.current.currentTime = data.points[0].x;
     videoRef.current.pause();
 
     if (!isMarkUp && addNewPoint) {
@@ -325,7 +356,7 @@ const WavePlotEditable = ({
     setRemoveCycle(false);
   };
 
-  const showPopUp = msg => {
+  const showPopUp = (msg) => {
     setPopupMsg(msg);
     setShowPopup(true);
   };
@@ -495,7 +526,7 @@ const WavePlotEditable = ({
             },
           ]}
           revision={revision}
-          onClick={handleClickonPlot}
+          onClick={(data) => handleClickonPlot(data)}
           config={{
             modeBarButtonsToRemove: ['zoom2d', 'select2d', 'lasso2d', 'resetScale2d'],
             responsive: true,
@@ -520,6 +551,8 @@ const WavePlotEditable = ({
           }}
         />
       </div>
+
+      {/* Button row */}
       <div className="flex justify-center gap-4 mt-4">
         <Button
           variant="contained"
