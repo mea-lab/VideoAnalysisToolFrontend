@@ -150,8 +150,6 @@ const WavePlotEditable = ({
     isAddNewPeakLowEnd,
   ]);
 
-  const handleKeyUp = (event) => {
-  // Key event handlers
   const handleKeyUp = event => {
     setIsKeyDown(false);
     switch (event.code) {
@@ -167,7 +165,7 @@ const WavePlotEditable = ({
       default:
         break;
     }
-  };
+  }
 
   const handleKeyDown = (event) => {
     if (!isKeyDown) {
