@@ -1,3 +1,4 @@
+// src/pages/TaskDetails/WaveImage.jsx
 import React, { useEffect, useState } from 'react';
 import WavePlotEditable from './WavePlotEditable';
 
