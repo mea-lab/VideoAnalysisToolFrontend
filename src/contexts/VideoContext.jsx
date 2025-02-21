@@ -9,8 +9,8 @@ export const VideoProvider = ({ children }) => {
     const [fileName, setFileName] = useState('');
     const [fps, setFPS] = useState(60);
 
-    const [boundingBoxes, setBoundingBoxes] = useState([]);
     const [persons, setPersons] = useState([]);
+    const [boundingBoxes, setBoundingBoxes] = useState([]);
     const [tasks, setTasks] = useState([]);
     const [taskBoxes, setTaskBoxes] = useState([]);
 

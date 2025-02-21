@@ -21,7 +21,6 @@ const VideoPlayer = ({
   setTaskBoxes,
   landMarks,
   selectedTask,
-  postVideoLoad,
   frameOffset,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
