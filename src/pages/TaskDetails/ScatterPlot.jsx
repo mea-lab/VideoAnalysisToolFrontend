@@ -1,6 +1,9 @@
 // src/pages/TaskDetails/ScatterPlot.jsx
 import React, { useEffect, useState } from 'react';
 import Plot from 'react-plotly.js';
+import { CloudDownload } from '@mui/icons-material';
+import Button from '@mui/material/Button';
+
 
 const ScatterPlot = ({ taskRecord, taskName }) => {
   const [plotlyData, setPlotlyData] = useState([]);
@@ -9,6 +12,7 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
   const [tableView, setTableView] = useState(true);
 
   const [isPopupVisible, setIsPopupVisible] = useState(false);
+  
 
   useEffect(() => {
     console.log(taskName);
@@ -123,64 +127,53 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
         <Plot data={plotlyData} config={plotlyConfig} layout={{}} />
       )}
 
-      {tableView && (
-        <div>
-          <div
-            style={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}
-          >
-            <table
-              style={{
-                borderCollapse: 'collapse',
-                border: '1px solid black',
-                margin: 'auto',
-              }}
-            >
-              <thead>
-                <tr>
-                  <th style={{ border: '1px solid black', padding: '8px' }}>
-                    Attribute
-                  </th>
-                  <th style={{ border: '1px solid black', padding: '8px' }}>
-                    Value
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(taskRecord.radarTable).map(([key, value]) => (
-                  <tr key={key}>
-                    <td style={{ border: '1px solid black', padding: '8px' }}>
-                      {key}
-                    </td>
-                    <td style={{ border: '1px solid black', padding: '8px' }}>
-                      {value}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <button
-            style={{
-              marginTop: '18px',
-              marginBottom: '25px',
-              position: 'relative',
-              backgroundColor: '#41337A', // Background color
-              color: 'white', // Text color
-              border: 'none', // Removes the default border
-              borderRadius: '5px', // Rounded corners
-              padding: '10px 20px', // Padding inside the button
-              cursor: 'pointer', // Cursor changes to pointer on hover
-            }}
-            onClick={downloadCSV}
-          >
-            Download
-          </button>
-        </div>
-      )}
+{tableView && (
+  <div className="p-4">
+    <div className="overflow-x-auto rounded-lg shadow-lg">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-gray-50">
+          <tr>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Attribute
+            </th>
+            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+              Value
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {Object.entries(taskRecord.radarTable).map(([key, value]) => (
+            <tr key={key}>
+              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                {key}
+              </td>
+              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                {typeof value === 'number' ? value.toFixed(2) : value}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <div className="mt-4 flex justify-center">
+  <Button
+    variant="contained"
+    onClick={downloadCSV}
+    startIcon={<CloudDownload />}
+    sx={{
+      bgcolor: 'primary.main',
+      '&:hover': { bgcolor: 'primary.dark' },
+      textTransform: 'none',
+      fontWeight: 'bold',
+      px: 3,
+      py: 1,
+    }}
+  >
+    Download CSV
+  </Button>
+</div>
+  </div>
+)}
     </div>
   );
 };
