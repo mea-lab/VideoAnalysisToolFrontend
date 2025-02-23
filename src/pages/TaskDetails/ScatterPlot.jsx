@@ -15,7 +15,6 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
   
 
   useEffect(() => {
-    console.log(taskName);
     let data = [
       {
         type: 'scatterpolar',

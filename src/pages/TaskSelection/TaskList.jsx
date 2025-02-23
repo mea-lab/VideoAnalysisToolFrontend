@@ -40,12 +40,6 @@ const Task = ({
 }) => {
   const [selectedOption, setSelectedOption] = useState(null);
 
-  // const handleNewOption = (option) => {
-  //     const newOption = {label: option, value: option};
-  //     setOptions([...options, newOption]);
-  //     handleTaskChange(newOption);
-  // }
-
   const getSelectBorderColor = () => {
     if (selectedOption === null) return 'gray';
 
@@ -64,13 +58,11 @@ const Task = ({
   };
   return (
     <div className={'flex justify-between gap-2'} key={task.id}>
-      {/*<input className={"p-2 w-1/4"} onChange={e => onFieldChange(e, "name", task)} value={task.name}/>*/}
       <div className={'w-1/4'}>
         <Creatable
           options={options}
           value={{ label: task.name, value: task.name }}
           onChange={handleTaskChange}
-          // onCreateOption={handleNewOption}
           placeholder={'Select or add'}
           styles={{
             control: (baseStyles, state) => ({
@@ -118,8 +110,6 @@ const Task = ({
       >
         X
       </button>
-
-      {/*<div>{selectedOption}</div>*/}
     </div>
   );
 };
@@ -130,14 +120,12 @@ const TaskListLabels = ({ resetTaskSelection }) => {
       <div className={'font-bold'}>Task name</div>
       <div className={'font-bold'}>Start time</div>
       <div className={'font-bold'}>End time</div>
-      {/*<div className={"rounded-md bg-gray-800 text-white p-2 px-4 opacity-0 disabled"}>+ </div>*/}
       <div className={'flex gap-2'}>
         <button
           className={
             'p-2 pl-2 px-4 rounded-md bg-blue-500 text-white font-bold flex flex-row gap-2'
           }
           onClick={resetTaskSelection}
-          // onClick={() => onTaskDelete(task)}
         >
           <RestartAlt /> Reset
         </button>

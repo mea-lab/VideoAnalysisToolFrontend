@@ -22,6 +22,8 @@ export default function JSONUploadDialog({
   taskBoxes,
   selectedTask,
 }) {
+  console.log("Tasks",tasks)
+  console.log("Selected Task",selectedTask)
   const [fileError, setFileError] = useState('');
   const [jsonContent, setJSONContent] = useState(null);
   const [serverProcessing, setServerProcessing] = useState(false);
@@ -68,8 +70,6 @@ export default function JSONUploadDialog({
   const getAnalysis = async () => {
     setServerProcessing(true);
     const videoURL = videoRef.current.src;
-    console.log(videoURL)
-
     let blob = await fetch(videoURL).then(r => r.blob());
 
     fetchAnalysisDetails(blob);
@@ -81,8 +81,6 @@ export default function JSONUploadDialog({
       uploadData.append('video', content);
       let taskData = tasks[selectedTask];
 
-      console.log("Task Data:", taskData)
-      console.log("Tasks:", tasks)
       const chosenTaskBox = taskBoxes.find(box => box.id === taskData.id);
       const taskBoxCords = {
         x: chosenTaskBox.x,
@@ -90,8 +88,6 @@ export default function JSONUploadDialog({
         width: chosenTaskBox.width,
         height: chosenTaskBox.height,
       };
-
-      console.log("task box coords", taskBoxCords)
 
       let jsonData = {
         boundingBox: taskBoxCords,
@@ -101,12 +97,9 @@ export default function JSONUploadDialog({
         fps: fps,
       };
 
-      console.log("Json Data",jsonData)
-
       jsonData = JSON.stringify(jsonData);
-
       uploadData.append('json_data', jsonData);
-      console.log("Upload Data Content:", uploadData)
+      console.log("Uploaded Data Content:", uploadData)
 
       let apiURL = 'http://localhost:8000/api/leg_raise/';
       if (taskData.name.includes('Leg agility'))
@@ -120,7 +113,6 @@ export default function JSONUploadDialog({
       });
       if (response.ok) {
         const data = await response.json();
-        console.log("Data", data)
         if (validateJson(data)) {
           handleJSONUpload(true, data);
           setDialogOpen(false);
