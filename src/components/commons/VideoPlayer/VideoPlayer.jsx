@@ -21,7 +21,6 @@ const VideoPlayer = ({
   setTaskBoxes,
   landMarks,
   selectedTask,
-  frameOffset,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -254,7 +253,6 @@ const VideoPlayer = ({
                 taskBoxes={taskBoxes}
                 landMarks={landMarks}
                 selectedTask={selectedTask}
-                frameOffset={frameOffset}
                 setTaskBoxes={setTaskBoxes}
                 style={{
                   position: 'absolute',

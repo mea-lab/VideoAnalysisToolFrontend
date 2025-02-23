@@ -1,4 +1,3 @@
-// src/pages/TaskDetails/index.jsx
 import React, { useContext, useEffect, useRef, useState } from 'react';
 import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
 import { VideoContext } from '../../contexts/VideoContext';
@@ -6,7 +5,7 @@ import HeaderSection from './HeaderSection';
 import Button from '@mui/material/Button';
 import JSONUploadDialog from './JSONUploadDialog';
 import PlotWidget from './PlotWidget';
-import { RestartAlt, CloudDownload, TouchApp } from '@mui/icons-material';
+import { RestartAlt, CloudDownload } from '@mui/icons-material';
 
 function useDebounce(callback, delay) {
   const timeoutRef = useRef(null);
@@ -26,38 +25,23 @@ const TaskDetails = () => {
     setVideoURL,
     videoRef,
     fileName,
-    setFileName,
     boundingBoxes,
     setBoundingBoxes,
     fps,
-    setFPS,
     taskBoxes,
     setTaskBoxes,
     tasks,
     setTasks,
-    tasksReady,
-    setTasksReady,
     persons,
-    setPersons,
-    boxesReady,
-    setBoxesReady,
   } = useContext(VideoContext);
 
-  const [dataReady, setDataReady] = useState(false);
   const [openJsonUpload, setOpenJsonUpload] = useState(false);
   const [selectedTask, setSelectedTask] = useState(0);
-  const [selectedTaskName, setSelectedTaskName] = useState();
-  const [taskToPlotMap, setTaskToPlotMap] = useState({});
-  const [landMarks, setLandMarks] = useState([]);
-  const [normalizationLandMarks, setNormalizationLandMarks] = useState([]);
-  const [normalizationFactor, setNormalizationFactor] = useState();
-  const [frameOffset, setFrameOffset] = useState(0);
 
   useEffect(() => {
     if (!videoReady) return;
     const task = tasks[selectedTask];
     if (!task) return;
-    setSelectedTaskName(task.name);
     videoRef.current.currentTime = task.start;
     videoRef.current.ontimeupdate = event => {
       if (event.target.currentTime >= task.end) {
@@ -66,61 +50,28 @@ const TaskDetails = () => {
     };
   }, [selectedTask, videoReady, tasks, videoRef]);
 
-  const onFPSCalculation = (fps) => {
-    setVideoReady(true);
-  };
-
   const handleProcessing = (jsonFileUploaded, jsonContent) => {
-    console.log("Returned json content", jsonContent);
     if (jsonFileUploaded && jsonContent) {
-      if (jsonContent.linePlot) {
-        let updatedRecord = taskToPlotMap[selectedTaskName] || {};
-        updatedRecord = {
-          ...updatedRecord,
-          linePlot: jsonContent.linePlot,
-          velocityPlot: jsonContent.velocityPlot,
-          rawData: jsonContent.rawData,
-          peaks: jsonContent.peaks,
-          valleys_start: jsonContent.valleys_start,
-          valleys_end: jsonContent.valleys_end,
-          valleys: jsonContent.valleys,
-        };
-        if (jsonContent.radar) updatedRecord.radar = jsonContent.radar;
-        if (jsonContent.radarTable)
-          updatedRecord.radarTable = { ...updatedRecord.radarTable, ...jsonContent.radarTable };
-        if (jsonContent.landMarks) {
-          updatedRecord.landMarks = jsonContent.landMarks;
-          setLandMarks(jsonContent.landMarks);
-        }
-        if (jsonContent.normalization_landmarks) {
-          updatedRecord.normalizationLandMarks = jsonContent.normalization_landmarks;
-          setNormalizationLandMarks(jsonContent.normalization_landmarks);
-        }
-        if (jsonContent.normalization_factor) {
-          updatedRecord.normalization_factor = jsonContent.normalization_factor;
-          setNormalizationFactor(jsonContent.normalization_factor);
-        }
-        updatedRecord.fileName = fileName.replace(/\.[^/.]+$/, '');
-        setTaskToPlotMap({
-          ...taskToPlotMap,
-          [selectedTaskName]: updatedRecord,
-        });
-      } else {
-        console.log('Error while reading the json content of graph');
-      }
-      setDataReady(true);
+      const safeFileName = fileName.replace(/\.[^/.]+$/, '');
+      setTasks(prev => {
+        const newTasks = [...prev];
+        newTasks[selectedTask] = { ...newTasks[selectedTask], data: { ...jsonContent, fileName: safeFileName } };
+        return newTasks;
+      });
     }
   };
 
   const resetTask = () => {
-    if (taskToPlotMap[selectedTaskName]) {
-      setTaskToPlotMap({ ...taskToPlotMap, [selectedTaskName]: null });
-    }
+    setTasks(prev => {
+      const newTasks = [...prev];
+      newTasks[selectedTask] = { ...newTasks[selectedTask], data: null };
+      return newTasks;
+    });
   };
 
   const DownloadCurrentTask = () => {
-    console.log("Downloading task name", selectedTaskName);
-    const fileData = taskToPlotMap[selectedTaskName];
+    const currentTask = tasks[selectedTask];
+    const fileData = currentTask.data;
     const downloadContent = {
       linePlot: fileData.linePlot,
       velocityPlot: fileData.velocityPlot,
@@ -141,7 +92,7 @@ const TaskDetails = () => {
     const href = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = href;
-    link.download = `${fileName.replace(/\.[^/.]+$/, '')}_${selectedTaskName}.json`;
+    link.download = `${fileName.replace(/\.[^/.]+$/, '')}_${currentTask.name}.json`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -150,14 +101,15 @@ const TaskDetails = () => {
 
   const debouncedUpdateLandmarks = useDebounce(async newLandMarks => {
     try {
-      const { start, end } = tasks[selectedTask];
+      const { start, end, data } = tasks[selectedTask];
+      const currentTaskName = tasks[selectedTask].name;
       const jsonData = JSON.stringify({
-        task_name: selectedTaskName,
+        task_name: currentTaskName,
         start_time: start,
         end_time: end,
         fps,
-        landmarks: taskToPlotMap[selectedTaskName].landMarks,
-        normalization_factor: taskToPlotMap[selectedTaskName].normalization_factor,
+        landmarks: data.landMarks,
+        normalization_factor: data.normalizationFactor,
       });
       const uploadData = new FormData();
       uploadData.append('json_data', jsonData);
@@ -166,27 +118,30 @@ const TaskDetails = () => {
         body: uploadData,
       });
       if (response.ok) {
-        const data = await response.json();
-        handleProcessing(true, data);
+        const updatedData = await response.json();
+        handleProcessing(true, updatedData);
       } else {
         throw new Error('Server responded with an error!');
       }
     } catch (error) {
-      console.error('Failed to fetch projects:', error);
+      console.error('Failed to update landmarks:', error);
     }
   }, 1000);
 
   const updateNewLandMarks = newLandMarks => {
-    if (taskToPlotMap[selectedTaskName]) {
-      setTaskToPlotMap({
-        ...taskToPlotMap,
-        [selectedTaskName]: { ...taskToPlotMap[selectedTaskName], landMarks: newLandMarks },
-      });
-    }
+    setTasks(prev => {
+      const newTasks = [...prev];
+      if (newTasks[selectedTask].data) {
+        newTasks[selectedTask] = {
+          ...newTasks[selectedTask],
+          data: { ...newTasks[selectedTask].data, landMarks: newLandMarks },
+        };
+      }
+      return newTasks;
+    });
   };
 
   const handleLandMarksChange = newLandMarks => {
-    setLandMarks(newLandMarks);
     updateNewLandMarks(newLandMarks);
     debouncedUpdateLandmarks(newLandMarks);
   };
@@ -205,26 +160,21 @@ const TaskDetails = () => {
       <div className="flex flex-1 overflow-hidden">
         <div className="flex-1 min-w-[50%] bg-slate-900">
           <VideoPlayer
+            videoURL={videoURL}
             videoData={videoData}
-            screen="taskDetails"
-            taskBoxes={taskBoxes}
             videoRef={videoRef}
+            screen="taskDetails"
             boundingBoxes={boundingBoxes}
             setBoundingBoxes={setBoundingBoxes}
+            taskBoxes={taskBoxes}
             fps={fps}
             persons={persons}
-            fpsCallback={onFPSCalculation}
             setVideoReady={setVideoReady}
-            videoURL={videoURL}
             setVideoData={setVideoData}
             fileName={fileName}
-            setFileName={setFileName}
-            setVideoURL={setVideoURL}
-            landMarks={taskToPlotMap[selectedTaskName]?.landMarks}
-            setLandMarks={handleLandMarksChange}
+            landMarks={tasks[selectedTask].data?.landMarks}
             setTaskBoxes={setTaskBoxes}
             selectedTask={selectedTask}
-            frameOffset={frameOffset}
           />
         </div>
         <div className="flex-1 flex flex-col min-w-[50%] bg-slate-50 overflow-y-auto">
@@ -252,18 +202,13 @@ const TaskDetails = () => {
             <Button variant="contained" onClick={resetTask} startIcon={<RestartAlt />} sx={commonButtonStyle}>
               Reset
             </Button>
-            {taskToPlotMap[selectedTaskName] && (
-              <Button
-                variant="contained"
-                onClick={DownloadCurrentTask}
-                startIcon={<CloudDownload />}
-                sx={commonButtonStyle}
-              >
+            {tasks[selectedTask].data && (
+              <Button variant="contained" onClick={DownloadCurrentTask} startIcon={<CloudDownload />} sx={commonButtonStyle}>
                 Download
               </Button>
             )}
           </div>
-          {!taskToPlotMap[selectedTaskName] && (
+          {!tasks[selectedTask].data ? (
             <div className="flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll">
               <div>Analyze the task</div>
               <Button
@@ -285,12 +230,12 @@ const TaskDetails = () => {
                 selectedTask={selectedTask}
               />
             </div>
-          )}
-          {taskToPlotMap[selectedTaskName] && (
+          ) : (
             <PlotWidget
-              key={selectedTask}
-              taskName={selectedTaskName}
-              taskRecord={taskToPlotMap[selectedTaskName]}
+              selectedTaskIndex={selectedTask}
+              tasks={tasks}
+              setTasks={setTasks}
+              fileName={fileName}
               videoRef={videoRef}
               startTime={taskBoxes[selectedTask].start}
               endTime={taskBoxes[selectedTask].end}

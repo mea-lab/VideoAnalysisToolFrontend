@@ -22,8 +22,8 @@ export default function JSONUploadDialog({
   taskBoxes,
   selectedTask,
 }) {
-  console.log("Tasks",tasks)
-  console.log("Selected Task",selectedTask)
+  // console.log("Tasks",tasks)
+  // console.log("Selected Task",selectedTask)
   const [fileError, setFileError] = useState('');
   const [jsonContent, setJSONContent] = useState(null);
   const [serverProcessing, setServerProcessing] = useState(false);
@@ -96,10 +96,10 @@ export default function JSONUploadDialog({
         end_time: taskData.end,
         fps: fps,
       };
-
+      
+      // console.log("Uploaded Data Content:", jsonData)
       jsonData = JSON.stringify(jsonData);
       uploadData.append('json_data', jsonData);
-      console.log("Uploaded Data Content:", uploadData)
 
       let apiURL = 'http://localhost:8000/api/leg_raise/';
       if (taskData.name.includes('Leg agility'))
@@ -113,6 +113,7 @@ export default function JSONUploadDialog({
       });
       if (response.ok) {
         const data = await response.json();
+        // console.log("Returned Data Content:", data)
         if (validateJson(data)) {
           handleJSONUpload(true, data);
           setDialogOpen(false);

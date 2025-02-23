@@ -21,7 +21,6 @@ const TasksWaveForm = ({
   const [loadPercent, setLoadPercent] = useState(0);
   const [waveSurferReady, setWaveSurferReady] = useState(false);
   const tasksRef = useRef(tasks);
-  console.log("Tasks",tasks)
   
   const updateRegions = () => {
     if (regionsPluginRef.current) {
@@ -138,7 +137,6 @@ const TasksWaveForm = ({
   
     const startChanged = Math.abs(taskToUpdate.start - startTime) > 0.001;
     const endChanged = Math.abs(taskToUpdate.end - endTime) > 0.001;
-    console.log("startChanged",startChanged)
     if (startChanged) {
       if (videoRef.current) {
         videoRef.current.currentTime = startTime;

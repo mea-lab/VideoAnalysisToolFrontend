@@ -10,7 +10,6 @@ const MarksOverlay = ({
   taskBoxes = [],
   landMarks,
   selectedTask,
-  frameOffset = 0,
   setTaskBoxes,
   style,
 }) => {
@@ -19,8 +18,8 @@ const MarksOverlay = ({
   const lastDrawnFrame = useRef(-1);
 
   const getFrameNumber = useCallback(
-    (timestamp) => Math.floor(timestamp * fps) + frameOffset,
-    [fps, frameOffset]
+    (timestamp) => Math.floor(timestamp * fps),
+    [fps]
   );
 
   const clearCanvas = useCallback(() => {
