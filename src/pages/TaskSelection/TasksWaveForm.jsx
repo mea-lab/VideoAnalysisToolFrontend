@@ -21,6 +21,7 @@ const TasksWaveForm = ({
   const [loadPercent, setLoadPercent] = useState(0);
   const [waveSurferReady, setWaveSurferReady] = useState(false);
   const tasksRef = useRef(tasks);
+  console.log("Tasks",tasks)
   
   const updateRegions = () => {
     if (regionsPluginRef.current) {
@@ -88,7 +89,7 @@ const TasksWaveForm = ({
     });
     region.remove()
     
-    const newTask = { id: newId, start: startTime, end: endTime, name: regionName };
+    const newTask = { id: newId, start: startTime, end: endTime, name: regionName, data:null };
     setTasks(prev => [...prev, newTask]);
     if (!tasksReady) setTasksReady(true);
   };
