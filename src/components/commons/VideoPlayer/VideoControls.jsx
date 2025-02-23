@@ -1,8 +1,6 @@
-// src/components/commons/VideoPlayer/VideoControls.jsx
 import { Pause, PlayArrow } from '@mui/icons-material';
 import React, { useEffect } from 'react';
 import Tooltip from '@mui/material/Tooltip';
-
 
 const VideoControls = ({ videoRef, isPlaying, fps }) => {
   const checkVideoLoaded = () => {
@@ -69,7 +67,7 @@ const VideoControls = ({ videoRef, isPlaying, fps }) => {
   }, [fps, videoRef]);
 
   return (
-    <div className="flex gap-4 text-2xl items-center">
+    <div className="flex gap-4 text-xl justify-center items-center bg-gray-200 backdrop-blur-md rounded-2xl px-4 py-2 text-black">
       <Tooltip title="Down Arrow">
         <button onClick={() => changeVideoFrame(-5)}> -5 </button>
       </Tooltip>

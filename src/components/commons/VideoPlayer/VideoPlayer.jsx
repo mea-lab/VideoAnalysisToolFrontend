@@ -161,7 +161,7 @@ const VideoPlayer = ({
   };
 
   return (
-    <div className="flex flex-col gap-4 p-4 justify-center items-center bg-gray-100 w-full h-full">
+    <div className="flex flex-col justify-center items-center bg-gray-100 w-full h-full">
       {!videoURL && (
         <label>
           <input
@@ -177,50 +177,44 @@ const VideoPlayer = ({
           </div>
         </label>
       )}
-
       {videoURL && (
-        
-        <div className="flex h-full items-center px-10 w-full gap-2">
-          <div className="h-full w-full flex flex-col gap-2 items-center">
-            <div className="w-full flex justify-between items-center p-4">
-              <div className="flex-grow flex items-center justify-center">
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center p-2 rounded-lg">
-                    <div className="text-lg font-semibold text-gray-800">{fileName}</div>
-                    <IconButton color="error" onClick={resetVideo} title="Close Video" className="ml-2">
-                      <Close />
-                    </IconButton>
-                  </div>
-                </div>
-              </div>
+        <div className="h-full w-full flex flex-col">
 
-              <div className="flex items-center space-x-2">
-                <div className="flex items-center space-x-2 p-2 rounded-lg">
-                  <input
-                    className="w-24 text-center border rounded-lg px-2 py-1"
-                    type="value"
-                    value={frameInput}
-                    onChange={(e) => setFrameInput(e.target.value)}
-                    onFocus={() => setIsEditing(true)}
-                    onBlur={() => {
-                      setIsEditing(false);
-                      const newFrame = Number(frameInput);
-                      if (!isNaN(newFrame) && videoRef.current) {
-                        videoRef.current.currentTime = newFrame / fps;
-                        setCurrentFrame(newFrame);
-                      }
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        e.target.blur();
-                      }
-                    }}
-                  />
-                  <div className="text-gray-600">/</div>
-                  <div className="text-gray-800">{getTotalFrameCount()}</div>
-                </div>
-              </div>
+          <div className="w-full flex flex-row items-center justify-around py-4">
+            {/* Title */}
+            <div className="flex items-center justify-center">
+              <span className="text-lg font-semibold text-gray-800">{fileName}</span>
+              <IconButton color="error" onClick={resetVideo} title="Close Video" className="ml-2">
+                <Close />
+              </IconButton>
             </div>
+            {/* Frame Counter */}
+            <div className="flex items-center space-x-1">
+              <input
+                className="w-24 text-center border rounded-lg px-2 py-1"
+                type="text"
+                value={frameInput}
+                onChange={(e) => setFrameInput(e.target.value)}
+                onFocus={() => setIsEditing(true)}
+                onBlur={() => {
+                  setIsEditing(false);
+                  const newFrame = Number(frameInput);
+                  if (!isNaN(newFrame) && videoRef.current) {
+                    videoRef.current.currentTime = newFrame / fps;
+                    setCurrentFrame(newFrame);
+                  }
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') e.target.blur();
+                }}
+              />
+              <span className="text-gray-600">/</span>
+              <span className="text-gray-800">{getTotalFrameCount()}</span>
+            </div>
+          </div>
+
+          <div className="flex flex-row justify-evenly overflow-hidden relative py-2">
+          <div className="flex flex-col w-[10vw]"></div>
             <div
               ref={containerRef}
               className="relative h-full overflow-hidden rounded-lg"
@@ -237,7 +231,7 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
-                  opacity: 0,
+                  opacity: 0, //video element should not show the video because it buffers, marks overlay draws it
                 }}
                 onLoadedMetadata={() => {
                   setVideoReady(true);
@@ -294,32 +288,25 @@ const VideoPlayer = ({
               )}
             </div>
 
-            <VideoControls videoRef={videoRef} isPlaying={isPlaying} fps={fps} />
+            <div className="flex flex-col items-center justify-center w-[10vw]">
+              <Slider
+                orientation="vertical"
+                min={1}
+                max={10}
+                step={0.1}
+                value={zoomLevel}
+                onChange={handleZoomChange}
+                aria-labelledby="Zoom"
+                style={{ height: 300, width: 5}}
+                valueLabelDisplay="auto"
+                valueLabelFormat={(value) => `${value}x`}
+              />
+              <span className="text-md font-semibold text-gray-800 mt-4">Zoom</span>
+            </div>
           </div>
 
-          <div className="flex flex-col items-center gap-4">
-            <Slider
-              orientation="vertical"
-              min={1}
-              max={10}
-              step={0.1}
-              value={zoomLevel}
-              onChange={handleZoomChange}
-              aria-labelledby="Zoom"
-              style={{ height: 200 }}
-              valueLabelDisplay="auto"
-              valueLabelFormat={(value) => `${value}x`}
-            />
-            <div className="font-semibold">Zoom</div>
-            <button
-              className="p-2 bg-gray-800 text-white rounded-md"
-              onClick={() => {
-                setZoomLevel(1);
-                setPanOffset({ x: 0, y: 0 });
-              }}
-            >
-              Reset Zoom
-            </button>
+          <div className="flex items-center pb-4 justify-center">
+            <VideoControls videoRef={videoRef} isPlaying={isPlaying} fps={fps} />
           </div>
         </div>
       )}

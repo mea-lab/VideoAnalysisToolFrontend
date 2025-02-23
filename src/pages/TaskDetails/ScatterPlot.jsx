@@ -148,7 +148,7 @@ const ScatterPlot = ({ taskRecord, taskName }) => {
                 {key}
               </td>
               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                {typeof value === 'number' ? value.toFixed(2) : value}
+                {typeof value === 'number' ? value.toFixed(4) : value}
               </td>
             </tr>
           ))}
