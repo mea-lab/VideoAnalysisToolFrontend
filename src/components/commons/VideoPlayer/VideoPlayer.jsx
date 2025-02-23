@@ -237,9 +237,7 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
-                  transform: `scale(${zoomLevel}) translate(${panOffset.x / zoomLevel}px, ${panOffset.y / zoomLevel}px)`,
-                  transformOrigin: 'center center',
-                  pointerEvents: 'none',
+                  opacity: 0,
                 }}
                 onLoadedMetadata={() => {
                   setVideoReady(true);

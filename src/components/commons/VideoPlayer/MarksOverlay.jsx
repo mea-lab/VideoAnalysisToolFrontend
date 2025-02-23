@@ -14,7 +14,6 @@ const MarksOverlay = ({
   setTaskBoxes,
   style,
 }) => {
-  // console.log("landmarks",landMarks)
   const canvasRef = useRef(null);
   const currentFrame = useRef(-1);
   const lastDrawnFrame = useRef(-1);
@@ -48,7 +47,6 @@ const MarksOverlay = ({
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    // Get bounding boxes for the current frame
     const boxData = boundingBoxes.find(
       (box) => box.frameNumber === currentFrame.current
     );
@@ -133,7 +131,8 @@ const MarksOverlay = ({
     [taskBoxes, selectedTask, fps, landMarks]
   );
 
-  // Main draw function that selects which overlay to render.
+  // Main draw function that ensures the video frame is drawn first,
+  // then overlays (e.g. landmarks) are drawn on top.
   const drawFrame = useCallback(
     (currentTime) => {
       const video = videoRef.current;
@@ -142,23 +141,27 @@ const MarksOverlay = ({
       lastDrawnFrame.current = frameNumber;
       currentFrame.current = frameNumber;
 
+      // Clear canvas and draw the current video frame as background.
       clearCanvas();
       drawVideoFrame();
+
+      // Draw overlay elements based on the screen mode.
       if (screen === 'tasks') {
-        // Uncomment these lines if you want to draw bounding boxes or task boxes
+        // Uncomment the following lines to draw bounding boxes or task boxes if needed.
         // drawBoundingBoxes();
         // drawTaskBoxes(currentTime);
       } else if (screen === 'taskDetails') {
-        // drawBoundingBoxes();
+        // Draw landmarks on top of the video frame.
         drawLandMarks(currentTime);
       } else {
+        // Other overlays can be added here if needed.
         // drawBoundingBoxes();
       }
     },
     [getFrameNumber, clearCanvas, drawVideoFrame, screen, drawLandMarks]
   );
 
-  // Set canvas dimensions and start a continuous render loop.
+  // Set canvas dimensions and start the continuous render loop.
   useEffect(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
@@ -190,7 +193,7 @@ const MarksOverlay = ({
     };
   }, [videoRef, drawFrame]);
 
-  // Also re-draw when external dependencies change.
+  // Redraw when external dependencies change.
   useEffect(() => {
     lastDrawnFrame.current = -1;
     const video = videoRef.current;
