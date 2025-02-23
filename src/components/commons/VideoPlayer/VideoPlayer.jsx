@@ -284,6 +284,7 @@ const VideoPlayer = ({
                   selectedTask={selectedTask}
                   landMarks={landMarks}
                   fps={fps}
+                  videoRef={videoRef}
                 />
               )}
             </div>

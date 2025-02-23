@@ -68,7 +68,13 @@ const BoundingBoxesOverlay = ({
   selectedTask,
   landMarks,
   fps,
+  videoRef,
 }) => {
+  // Only render overlays when the video is paused.
+  // if (videoRef && videoRef.current && !videoRef.current.paused) {
+  //   return null;
+  // }
+
   const svgRef = useRef(null);
   const resizingTaskRef = useRef(null);
   const draggingTaskRef = useRef(null);
@@ -201,7 +207,7 @@ const BoundingBoxesOverlay = ({
     }
   }, [screen, selectedTask, taskBoxes]);
 
-  const strokeThickness = 10
+  const strokeThickness = 10;
   return (
     <svg
       ref={svgRef}
@@ -217,7 +223,6 @@ const BoundingBoxesOverlay = ({
         pointerEvents: 'all',
       }}
     >
-
       {(screen === 'tasks' || screen === 'taskDetails') && taskToRender ? (
         <g key={`task-${taskIndex}`}>
           <rect
