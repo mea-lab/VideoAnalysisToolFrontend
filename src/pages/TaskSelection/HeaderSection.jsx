@@ -1,6 +1,7 @@
 import { Download, NavigateNext, ArrowBack} from '@mui/icons-material';
 import { Button, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import Typography from '@mui/material';
 
 const HeaderSection = ({
   title,
