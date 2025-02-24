@@ -3,8 +3,8 @@ import React, { useEffect, useRef, useState, useCallback } from 'react';
 import VideoControls from './VideoControls';
 import { Button, Slider, IconButton } from '@mui/material';
 import { Close } from '@mui/icons-material';
-import MarksOverlay from './MarksOverlay';
-import BoxesOverlay from './BoxesOverlay';
+import VideoDrawer from './VideoDrawer';
+import InteractiveOverlays from './InteractiveOverlays';
 
 const VideoPlayer = ({
   videoURL,
@@ -26,14 +26,12 @@ const VideoPlayer = ({
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
-  const canvasRef = useRef(null)
   const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
   const [isDragging, setIsDragging] = useState(false);
   const dragStartRef = useRef(null);
   const [videoDimensions, setVideoDimensions] = useState({ width: 0, height: 0 });
   const [frameInput, setFrameInput] = useState(0);
   const [isEditing, setIsEditing] = useState(false);
-  const [totalFrameCount, setFrameCount] = useState(null);
 
   const [currentFrame, setCurrentFrame] = useState(0);
   useEffect(() => {
@@ -62,6 +60,7 @@ const VideoPlayer = ({
       setContainerSize({ width: rect.width, height: rect.height });
     }
   }, []);
+
   useEffect(() => {
     updateContainerSize();
     window.addEventListener('resize', updateContainerSize);
@@ -177,8 +176,7 @@ const VideoPlayer = ({
         </label>
       )}
       {videoURL && (
-        <div className="h-full w-full flex flex-col">
-
+        <div className="h-full w-full flex justify-around flex-col">
           <div className="w-full flex flex-row items-center justify-around py-4">
             {/* Title */}
             <div className="flex items-center justify-center">
@@ -214,7 +212,7 @@ const VideoPlayer = ({
 
           <div className="flex flex-row justify-evenly overflow-hidden relative py-2">
           <div className="flex flex-col w-[10vw]"></div>
-            <div
+          <div
               ref={containerRef}
               className="relative h-full overflow-hidden rounded-lg"
               onPointerDown={handlePointerDown}
@@ -244,7 +242,8 @@ const VideoPlayer = ({
                 onPause={() => setIsPlaying(false)}
                 loop
               />
-              <MarksOverlay
+              <VideoDrawer
+                videoURL={videoURL}
                 videoRef={videoRef}
                 boundingBoxes={boundingBoxes}
                 fps={fps}
@@ -267,7 +266,7 @@ const VideoPlayer = ({
                 }}
               />
               {boundingBoxes && (
-                <BoxesOverlay
+                <InteractiveOverlays
                   boundingBoxes={boundingBoxes}
                   setBoundingBoxes={setBoundingBoxes}
                   taskBoxes={taskBoxes}

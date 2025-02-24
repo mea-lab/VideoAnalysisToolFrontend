@@ -1,7 +1,7 @@
 // src/components/commons/VideoPlayer/MarksOverlay.jsx
 import React, { useEffect, useRef, useCallback } from 'react';
 
-const MarksOverlay = ({
+const VideoDrawer = ({
   videoRef,
   boundingBoxes = [],
   fps = 30,
@@ -18,7 +18,7 @@ const MarksOverlay = ({
   const lastDrawnFrame = useRef(-1);
 
   const getFrameNumber = useCallback(
-    (timestamp) => Math.floor(timestamp * fps),
+    (timestamp) => Math.round(timestamp * fps),
     [fps]
   );
 
@@ -165,32 +165,37 @@ const MarksOverlay = ({
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
-
+  
     const setCanvasDimensions = () => {
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       const ctx = canvas.getContext('2d');
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     };
-
+  
     if (video.readyState >= 1) {
       setCanvasDimensions();
     } else {
       video.addEventListener('loadedmetadata', setCanvasDimensions);
     }
-
-    let animationFrameId;
-    const render = () => {
-      drawFrame(video.currentTime);
-      animationFrameId = requestAnimationFrame(render);
+  
+    let frameCallbackId;
+    const render = (now, metadata) => {
+      // metadata.mediaTime gives the current playback time (in seconds)
+      drawFrame(metadata.mediaTime);
+      frameCallbackId = video.requestVideoFrameCallback(render);
     };
-    render();
-
+  
+    frameCallbackId = video.requestVideoFrameCallback(render);
+  
     return () => {
       video.removeEventListener('loadedmetadata', setCanvasDimensions);
-      cancelAnimationFrame(animationFrameId);
+      if (video.cancelVideoFrameCallback) {
+        video.cancelVideoFrameCallback(frameCallbackId);
+      }
     };
   }, [videoRef, drawFrame]);
+  
 
   // Redraw when external dependencies change.
   useEffect(() => {
@@ -204,4 +209,4 @@ const MarksOverlay = ({
   return <canvas ref={canvasRef} style={style} />;
 };
 
-export default MarksOverlay;
+export default VideoDrawer;

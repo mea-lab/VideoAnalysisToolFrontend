@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
 import HeaderSection from './HeaderSection';
-import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
+import VideoPlayer from '../../components/VideoPlayer/VideoPlayer';
 import SubjectSelectionTab from './SubjectSelectionTab';
 import SubjectsWaveForm from './SubjectsWaveForm';
 import { VideoContext } from '../../contexts/VideoContext';

@@ -1,12 +1,10 @@
 //src/pages/TaskSelection/index.jsx
-import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
+import VideoPlayer from '../../components/VideoPlayer/VideoPlayer';
 import HeaderSection from './HeaderSection';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import TaskSelectionTab from './TaskSelectionTab';
 import TasksWaveForm from './TasksWaveForm';
-import TaskDetails from '../TaskDetails';
-import { Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { VideoContext } from '../../contexts/VideoContext';
 
@@ -42,7 +40,7 @@ const TaskSelection = () => {
 
   const onTaskChange = newTask => {
     const newTasks = tasks.map(task =>
-      task.id === newTask.id ? newTask : task,
+      task.id === newTask.id ? {...newTask, data:null} : task,
     );
     setTasks(newTasks);
   };

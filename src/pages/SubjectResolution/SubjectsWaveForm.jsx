@@ -41,7 +41,7 @@ const SubjectsWaveForm = ({ videoRef, isVideoReady }) => {
   // Initial zoom setup after waveSurfer is ready
   const setInitialZoom = () => {
     const duration = videoRef.current?.duration || 1;
-    const pxPerSec = (670 / duration) * 1; // Set to the initial zoom level (e.g., 1x)
+    const pxPerSec = (670 / duration) * 1;
     waveSurfer.current.zoom(pxPerSec);
   };
 

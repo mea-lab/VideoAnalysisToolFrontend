@@ -1,5 +1,5 @@
 import React, { useContext, useEffect, useRef, useState } from 'react';
-import VideoPlayer from '../../components/commons/VideoPlayer/VideoPlayer';
+import VideoPlayer from '../../components/VideoPlayer/VideoPlayer';
 import { VideoContext } from '../../contexts/VideoContext';
 import HeaderSection from './HeaderSection';
 import Button from '@mui/material/Button';
@@ -45,6 +45,9 @@ const TaskDetails = () => {
     videoRef.current.currentTime = task.start;
     videoRef.current.ontimeupdate = event => {
       if (event.target.currentTime >= task.end) {
+        videoRef.current.currentTime = task.start;
+      }
+      if (event.target.currentTime < task.start) {
         videoRef.current.currentTime = task.start;
       }
     };

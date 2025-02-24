@@ -53,7 +53,7 @@ const ResizeHandles = ({ x, y, width, height, onResize, item, index, handleSize 
   ));
 };
 
-const BoundingBoxesOverlay = ({
+const InteractiveOverlays = ({
   boundingBoxes,
   setBoundingBoxes,
   taskBoxes,
@@ -284,4 +284,4 @@ const BoundingBoxesOverlay = ({
   );
 };
 
-export default BoundingBoxesOverlay;
+export default InteractiveOverlays;

@@ -2,7 +2,7 @@
 import { ArrowBack } from '@mui/icons-material';
 import Button from '@mui/material/Button';
 import { useNavigate } from 'react-router-dom';
-import { HeaderTitle } from '../../components/commons/HeaderSection';
+import { Typography } from '@mui/material';
 
 
 const HeaderSection = ({ title, isVideoReady }) => {
@@ -11,7 +11,9 @@ const HeaderSection = ({ title, isVideoReady }) => {
   return (
     <header className="bg-slate-700 rounded-b-md py-4 px-8 shadow-lg">
       <div className={`mx-auto flex items-center ${isVideoReady ? 'justify-between' : 'justify-center'}`}>
-      <HeaderTitle>{title}</HeaderTitle>
+      <Typography variant="h4" className="text-white font-bold font-sans">
+        {title}
+      </Typography>
         
         {isVideoReady && (
           <Button

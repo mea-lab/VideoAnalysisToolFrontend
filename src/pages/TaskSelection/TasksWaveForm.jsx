@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
 import HoverPlugin from 'wavesurfer.js/plugins/hover';
-import CircularProgressWithLabel from '../../components/commons/CircularProgress';
 import { Slider } from '@mui/material';
 
 const TasksWaveForm = ({
@@ -24,7 +23,6 @@ const TasksWaveForm = ({
   
   const updateRegions = () => {
     if (regionsPluginRef.current) {
-      
       ignoreRegionEventsRef.current = true;
       regionsPluginRef.current.clearRegions();
       tasks.forEach(task => {
@@ -46,7 +44,7 @@ const TasksWaveForm = ({
     if (regionsPluginRef.current && waveSurferRef.current && waveSurferReady) {
       updateRegions();
     }
-  }, [tasks,waveSurferReady]);
+  }, [tasks, waveSurferReady]);
   
   const getWaveSurferOptions = () => ({
     container: waveformRef.current,
@@ -63,11 +61,11 @@ const TasksWaveForm = ({
     media: videoRef.current,
   });
   
-  // Initial zoom setup after waveSurfer is ready
+  // Initial zoom setup after WaveSurfer is ready
   const setInitialZoom = () => {
     const duration = videoRef.current?.duration || 1;
-    const pxPerSec = (670 / duration) * 1; // Set to the initial zoom level (e.g., 1x)
-    waveSurferRef.current.zoom(pxPerSec);
+    const basePxPerSec = 670 / duration; // base pixels per second at 1x zoom
+    waveSurferRef.current.zoom(basePxPerSec);
   };
   
   const getHighestId = () =>
@@ -81,14 +79,14 @@ const TasksWaveForm = ({
     const newId = getHighestId() + 1;
     const regionName = `Region ${newId}`;
     
-    //Hide original region
+    // Hide original region
     region.setOptions({ 
       color: 'rgba(0, 0, 0, 0.0)',
       resize: false,
     });
-    region.remove()
+    region.remove();
     
-    const newTask = { id: newId, start: startTime, end: endTime, name: regionName, data:null };
+    const newTask = { id: newId, start: startTime, end: endTime, name: regionName, data: null };
     setTasks(prev => [...prev, newTask]);
     if (!tasksReady) setTasksReady(true);
   };
@@ -109,8 +107,8 @@ const TasksWaveForm = ({
       setTasks(prev =>
         prev.map(task =>
           task.id === region.id
-          ? { ...task, start: startTime, end: endTime }
-          : task
+            ? { ...task, start: startTime, end: endTime, data: null }
+            : task
         )
       );
     }
@@ -165,7 +163,7 @@ const TasksWaveForm = ({
     waveSurferRef.current.on('ready', () => {
       setWaveLoading(false);
       setWaveSurferReady(true);
-      setInitialZoom()
+      setInitialZoom();
     });
     
     regionsPluginRef.current = waveSurferRef.current.registerPlugin(
@@ -188,9 +186,11 @@ const TasksWaveForm = ({
     };
   }, [isVideoReady, videoRef]);
   
-  const onZoomChange = (e, zoomLevel) => {
+  const onZoomChange = (event, zoomLevel) => {
     if (isVideoReady && waveSurferRef.current && !waveLoading) {
-      waveSurferRef.current.zoom(zoomLevel);
+      const duration = videoRef.current?.duration || 1;
+      const basePxPerSec = 670 / duration; // base pixel-per-second value
+      waveSurferRef.current.zoom(basePxPerSec * zoomLevel);
     }
   };
 
@@ -209,7 +209,7 @@ const TasksWaveForm = ({
             max={10}
             step={0.1}
             style={{ width: 200 }}
-            onChange={(e) => onZoomChange(e.target.value)}
+            onChange={onZoomChange}
             aria-label="Zoom"
             valueLabelDisplay="auto"
             valueLabelFormat={value => `${value}x`}
@@ -218,12 +218,11 @@ const TasksWaveForm = ({
       )}
       <div
         id="waveform"
-        className="w-full px-8 py-2 overflow-x-auto" // Change from overflow-x-scroll to overflow-x-auto
+        className="w-full px-8 py-2 overflow-x-auto"
         ref={waveformRef}
       />
     </div>
   );
-  
 };
 
 export default TasksWaveForm;

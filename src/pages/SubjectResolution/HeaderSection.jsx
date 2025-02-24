@@ -2,7 +2,6 @@ import React from 'react';
 import { Button, Typography } from '@mui/material';
 import { Download, NavigateNext, ArrowBack } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-import { HeaderTitle } from '../../components/commons/HeaderSection';
 
 const HeaderSection = ({
   title,
