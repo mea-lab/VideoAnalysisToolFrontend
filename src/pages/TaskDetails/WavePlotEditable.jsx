@@ -12,25 +12,40 @@ const WavePlotEditable = ({
   handleJSONUpload,
 }) => {
   const currentData = tasks[selectedTaskIndex].data;
-  
+
   const [videoCurrentTime, setVideoCurrentTime] = useState(startTime);
   const [blurEnd, setBlurEnd] = useState(startTime);
   const [blurStart, setBlurStart] = useState(endTime);
+
   const [popup, setPopup] = useState({ msg: '', show: false });
   const [alertPopup, setAlertPopup] = useState({ msg: '', show: false });
+
   const [taskFlags, setTaskFlags] = useState({ addNew: false, remove: false });
   const [addPointName, setAddPointName] = useState('valley_start');
   const [isMarkUp, setIsMarkUp] = useState(false);
+
+  // Temporary state for the cycle the user is adding
+  // We'll show them on the plot as soon as they're validated
+  const [tempCycle, setTempCycle] = useState({
+    valleyStart: null, // { x, y }
+    peak: null,        // { x, y }
+  });
+
   const [revision, setRevision] = useState(0);
+
+  // For quick-add (Q, W, E)
   const [quickAdd, setQuickAdd] = useState({
     peakHigh: false,
     peakLowStart: false,
     peakLowEnd: false,
   });
+
   const [selectedPoint, setSelectedPoint] = useState({});
   const [isKeyDown, setIsKeyDown] = useState(false);
+
   const plotRef = useRef(null);
 
+  // ------------------ Update tasks ------------------
   const updateCurrentTaskData = (updatedData) => {
     const updatedTasks = [...tasks];
     updatedTasks[selectedTaskIndex] = {
@@ -40,19 +55,22 @@ const WavePlotEditable = ({
     setTasks(updatedTasks);
   };
 
-  // Video event handlers
+  // ------------------ Video event handlers ------------------
   useEffect(() => {
     const videoEl = videoRef.current;
     let frameId = null;
+
     const updateFrame = () => {
       if (!videoEl.paused && !videoEl.ended) {
         setVideoCurrentTime(videoEl.currentTime);
         frameId = requestAnimationFrame(updateFrame);
       }
     };
+
     const playHandler = () => {
       if (!frameId) frameId = requestAnimationFrame(updateFrame);
     };
+
     const pauseHandler = () => {
       if (frameId) {
         cancelAnimationFrame(frameId);
@@ -60,14 +78,17 @@ const WavePlotEditable = ({
       }
       setVideoCurrentTime(videoEl.currentTime);
     };
+
     const timeUpdateHandler = () => {
       setVideoCurrentTime(videoEl.currentTime);
       setRevision((r) => r + 1);
     };
+
     videoEl.addEventListener('play', playHandler);
     videoEl.addEventListener('pause', pauseHandler);
     videoEl.addEventListener('ended', pauseHandler);
     videoEl.addEventListener('timeupdate', timeUpdateHandler);
+
     return () => {
       videoEl.removeEventListener('play', playHandler);
       videoEl.removeEventListener('pause', pauseHandler);
@@ -77,7 +98,7 @@ const WavePlotEditable = ({
     };
   }, [videoRef]);
 
-  // Key event handlers for quick-add and cancel (Escape)
+  // ------------------ Keyboard handlers ------------------
   useEffect(() => {
     const keyDownHandler = (evt) => {
       if (!isKeyDown) {
@@ -91,6 +112,7 @@ const WavePlotEditable = ({
           setQuickAdd((q) => ({ ...q, peakLowEnd: true }));
       }
     };
+
     const keyUpHandler = (evt) => {
       setIsKeyDown(false);
       if (evt.code === 'KeyQ')
@@ -100,20 +122,25 @@ const WavePlotEditable = ({
       if (evt.code === 'KeyE')
         setQuickAdd((q) => ({ ...q, peakLowEnd: false }));
     };
+
     document.addEventListener('keydown', keyDownHandler);
     document.addEventListener('keyup', keyUpHandler);
+
     return () => {
       document.removeEventListener('keydown', keyDownHandler);
       document.removeEventListener('keyup', keyUpHandler);
     };
   }, [isKeyDown]);
 
+  // ------------------ Helpers / Popups ------------------
   const cancelCurrentTask = () => {
     setPopup({ msg: '', show: false });
     setAlertPopup({ msg: '', show: false });
     setTaskFlags({ addNew: false, remove: false });
     setSelectedPoint({});
     setAddPointName('valley_start');
+    // Reset the partial cycle
+    setTempCycle({ valleyStart: null, peak: null });
     resetBlur();
   };
 
@@ -122,7 +149,233 @@ const WavePlotEditable = ({
     setBlurStart(endTime);
   };
 
-  // Get the data arrays for a given point type from the current task data
+  const showPopUp = (msg) => setPopup({ msg, show: true });
+
+  // ------------------ Overlap checks ------------------
+  const isInAnyExistingCycle = (x) => {
+    const starts = currentData.valleys_start.time;
+    const ends = currentData.valleys_end.time;
+    return starts.some((s, i) => x >= s && x <= ends[i]);
+  };
+
+  const intervalsOverlap = (aStart, aEnd, bStart, bEnd) => {
+    return aStart < bEnd && bStart < aEnd;
+  };
+
+  const isOverlappingExistingCycle = (newStart, newEnd) => {
+    const starts = currentData.valleys_start.time;
+    const ends = currentData.valleys_end.time;
+    for (let i = 0; i < starts.length; i++) {
+      if (intervalsOverlap(newStart, newEnd, starts[i], ends[i])) {
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // ------------------ Plot click handler ------------------
+  const handleClickOnPlot = (plotClickData) => {
+    const { x, y, data: plotSeries } = plotClickData.points[0];
+    videoRef.current.currentTime = x;
+    videoRef.current.pause();
+
+    // Quick-add logic
+    if (quickAdd.peakHigh || quickAdd.peakLowStart || quickAdd.peakLowEnd) {
+      handleQuickAdd(x, y);
+      return;
+    }
+
+    // Add new cycle logic
+    if (!isMarkUp && taskFlags.addNew) {
+      addNewPeakAndValley({ x, y });
+      return;
+    }
+
+    // Remove cycle logic
+    if (!isMarkUp && taskFlags.remove) {
+      const name = plotSeries.name;
+      if (['peak values', 'valley start', 'valley end'].includes(name)) {
+        const idx = findIndexForClickedPoint(name, x, y);
+        if (idx !== -1) {
+          setSelectedPoint({ idx, name });
+          setPopup({ msg: '', show: false });
+          setAlertPopup({
+            msg: 'All points in this cycle will be removed. Are you sure?',
+            show: true,
+          });
+        }
+      }
+      return;
+    }
+
+    // Repositioning existing points logic
+    if (!isMarkUp) {
+      const name = plotSeries.name;
+      if (['peak values', 'valley start', 'valley end'].includes(name)) {
+        const found = handleSelectElementFromArray(name, x);
+        if (found) setSelectedPoint(found);
+      }
+      setRevision((r) => r + 1);
+    } else if (isMarkUp && selectedPoint.name === 'peak values') {
+      // repositioning an existing peak
+      const idx = selectedPoint.idx;
+      if (
+        x > currentData.valleys_start.time[idx] &&
+        x < currentData.valleys_end.time[idx]
+      ) {
+        const newPeaks = {
+          data: currentData.peaks.data.map((d, i) => (i === idx ? y : d)),
+          time: currentData.peaks.time.map((t, i) => (i === idx ? x : t)),
+        };
+        updateCurrentTaskData({ ...currentData, peaks: newPeaks });
+        setSelectedPoint({});
+        resetBlur();
+        setIsMarkUp(false);
+        setRevision((r) => r + 1);
+      } else {
+        showPopUp('Peak must lie within the valley start/end range.');
+      }
+    }
+  };
+
+  // ------------------ Step-by-step "Add Cycle" ------------------
+  const addNewPeakAndValley = ({ x, y }) => {
+    if (addPointName === 'valley_start') {
+      // 1) Validate valley start
+      if (isInAnyExistingCycle(x)) {
+        showPopUp('You are trying to place a valley start that overlaps another cycle.');
+        return;
+      }
+      // Store to tempCycle and show it immediately
+      setTempCycle({ valleyStart: { x, y }, peak: null });
+      setAddPointName('peak');
+      showPopUp('Next, select the new peak point.');
+      setRevision((r) => r + 1);
+
+    } else if (addPointName === 'peak') {
+      // 2) Validate peak
+      if (!tempCycle.valleyStart) {
+        showPopUp('No valley start found. Please cancel and try again.');
+        return;
+      }
+      if (x <= tempCycle.valleyStart.x) {
+        showPopUp('Peak time must be after the Valley Start time.');
+        return;
+      }
+      if (isOverlappingExistingCycle(tempCycle.valleyStart.x, x)) {
+        showPopUp('Peak is overlapping with an existing cycle range.');
+        return;
+      }
+      // Store peak in tempCycle => displayed immediately
+      setTempCycle((prev) => ({ ...prev, peak: { x, y } }));
+      setAddPointName('valley_end');
+      showPopUp('Finally, select the new valley end point.');
+      setRevision((r) => r + 1);
+
+    } else if (addPointName === 'valley_end') {
+      // 3) Validate valley end
+      if (!tempCycle.valleyStart || !tempCycle.peak) {
+        showPopUp('No valley start or peak found. Please cancel and try again.');
+        return;
+      }
+      if (x <= tempCycle.peak.x) {
+        showPopUp('Valley end time must be after the Peak time.');
+        return;
+      }
+      if (isOverlappingExistingCycle(tempCycle.peak.x, x)) {
+        showPopUp('Valley end is overlapping with an existing cycle range.');
+        return;
+      }
+
+      // If valid => commit all three to currentData
+      const newValleysStart = {
+        data: [...currentData.valleys_start.data, tempCycle.valleyStart.y],
+        time: [...currentData.valleys_start.time, tempCycle.valleyStart.x],
+      };
+      const newPeaks = {
+        data: [...currentData.peaks.data, tempCycle.peak.y],
+        time: [...currentData.peaks.time, tempCycle.peak.x],
+      };
+      const newValleysEnd = {
+        data: [...currentData.valleys_end.data, y],
+        time: [...currentData.valleys_end.time, x],
+      };
+
+      const updatedData = {
+        ...currentData,
+        valleys_start: newValleysStart,
+        peaks: newPeaks,
+        valleys_end: newValleysEnd,
+      };
+
+      updateCurrentTaskData(updatedData);
+      handleJSONUpload(true, updatedData);
+
+      // Reset so we can add another cycle if we want
+      cancelCurrentTask();
+      setRevision((r) => r + 1);
+    }
+  };
+
+  // ------------------ Remove cycle logic ------------------
+  const removePeakAndValley = () => {
+    const idx = selectedPoint.idx;
+    if (idx < 0 || idx >= currentData.peaks.data.length) return;
+
+    const newPeaks = {
+      data: currentData.peaks.data.filter((_, i) => i !== idx),
+      time: currentData.peaks.time.filter((_, i) => i !== idx),
+    };
+    const newValleyStart = {
+      data: currentData.valleys_start.data.filter((_, i) => i !== idx),
+      time: currentData.valleys_start.time.filter((_, i) => i !== idx),
+    };
+    const newValleyEnd = {
+      data: currentData.valleys_end.data.filter((_, i) => i !== idx),
+      time: currentData.valleys_end.time.filter((_, i) => i !== idx),
+    };
+
+    const updatedData = {
+      ...currentData,
+      peaks: newPeaks,
+      valleys_start: newValleyStart,
+      valleys_end: newValleyEnd,
+    };
+    updateCurrentTaskData(updatedData);
+    handleJSONUpload(true, updatedData);
+    updateRadarTable(updatedData);
+
+    cancelCurrentTask();
+    setRevision((r) => r + 1);
+  };
+
+  const continueAlert = () => {
+    setAlertPopup({ msg: '', show: false });
+    removePeakAndValley();
+  };
+
+  // ------------------ Quick-add logic (Q, W, E) ------------------
+  const handleQuickAdd = (x, y) => {
+    const dataCopy = { ...currentData };
+    if (quickAdd.peakHigh) {
+      dataCopy.peaks.data.push(y);
+      dataCopy.peaks.time.push(x);
+      setQuickAdd((q) => ({ ...q, peakHigh: false }));
+    } else if (quickAdd.peakLowStart) {
+      dataCopy.valleys_start.data.push(y);
+      dataCopy.valleys_start.time.push(x);
+      setQuickAdd((q) => ({ ...q, peakLowStart: false }));
+    } else if (quickAdd.peakLowEnd) {
+      dataCopy.valleys_end.data.push(y);
+      dataCopy.valleys_end.time.push(x);
+      setQuickAdd((q) => ({ ...q, peakLowEnd: false }));
+    }
+    updateCurrentTaskData(dataCopy);
+    setRevision((r) => r + 1);
+    updateRadarTable(dataCopy);
+  };
+
+  // ------------------ Helpers for picking existing points ------------------
   const getPointArrays = (name) => {
     if (name === 'peak values') return currentData.peaks;
     if (name === 'valley start') return currentData.valleys_start;
@@ -150,211 +403,7 @@ const WavePlotEditable = ({
     return null;
   };
 
-  const showPopUp = (msg) => setPopup({ msg, show: true });
-  const getNextClosestPoint = (newX) =>
-    currentData.valleys_start.time.reduce(
-      (min, t) => (t > newX && t < min ? t : min),
-      endTime
-    );
-
-  const validatePeak = (newX) => {
-    const newValley =
-      currentData.valleys_start.time[
-        currentData.valleys_start.time.length - 1
-      ];
-    if (newX < newValley) return false;
-    return !(
-      currentData.peaks.time.some((pt) => pt >= newValley && pt <= newX) ||
-      currentData.valleys_start.time.some((t) => t >= newValley && t <= newX) ||
-      currentData.valleys_end.time.some((t) => t >= newValley && t <= newX)
-    );
-  };
-
-  const validateValleyEnd = (newX) => {
-    const newPeak =
-      currentData.peaks.time[currentData.peaks.time.length - 1];
-    if (newX < newPeak) return false;
-    return !(
-      currentData.peaks.time.some((pt) => pt >= newPeak && pt <= newX) ||
-      currentData.valleys_start.time.some((t) => t >= newPeak && t <= newX) ||
-      currentData.valleys_end.time.some((t) => t >= newPeak && t <= newX)
-    );
-  };
-
-  const isBetweenValleys = (xVal) =>
-    currentData.valleys_start.time.some(
-      (t, i) => xVal >= t && xVal <= currentData.valleys_end.time[i]
-    );
-
-  // Main plot click handler
-  const handleClickOnPlot = (data) => {
-    const { x, y, data: plotData } = data.points[0];
-    videoRef.current.currentTime = x;
-    videoRef.current.pause();
-    const name = plotData.name;
-
-    if (!isMarkUp && taskFlags.addNew) {
-      addNewPeakAndValley(data);
-      return;
-    }
-    if (!isMarkUp && taskFlags.remove) {
-      if (['peak values', 'valley start', 'valley end'].includes(name)) {
-        const idx = findIndexForClickedPoint(name, x, y);
-        if (idx !== -1) {
-          setSelectedPoint({ idx, name });
-          setPopup({ msg: '', show: false });
-          setAlertPopup({
-            msg: 'All points in this cycle will be removed. Are you sure?',
-            show: true,
-          });
-        }
-      }
-      return;
-    }
-    if (!isMarkUp) {
-      if (['peak values', 'valley start', 'valley end'].includes(name)) {
-        const found = handleSelectElementFromArray(name, x);
-        if (found) setSelectedPoint(found);
-      }
-      setRevision((r) => r + 1);
-    } else if (isMarkUp && selectedPoint.name === 'peak values') {
-      const idx = selectedPoint.idx;
-      if (
-        x > currentData.valleys_start.time[idx] &&
-        x < currentData.valleys_end.time[idx]
-      ) {
-        const newPeaks = {
-          data: currentData.peaks.data.map((d, i) =>
-            i === idx ? y : d
-          ),
-          time: currentData.peaks.time.map((t, i) =>
-            i === idx ? x : t
-          ),
-        };
-        updateCurrentTaskData({ ...currentData, peaks: newPeaks });
-        setSelectedPoint({});
-        resetBlur();
-        setIsMarkUp(false);
-        setRevision((r) => r + 1);
-      } else {
-        showPopUp('Peak must lie within the valley start/end range.');
-      }
-    }
-    if (quickAdd.peakHigh) {
-      const newPeaks = {
-        data: [...currentData.peaks.data, y],
-        time: [...currentData.peaks.time, x],
-      };
-      updateCurrentTaskData({ ...currentData, peaks: newPeaks });
-      setQuickAdd((q) => ({ ...q, peakHigh: false }));
-      setRevision((r) => r + 1);
-      updateRadarTable();
-    } else if (quickAdd.peakLowStart) {
-      const newValleyStart = {
-        data: [...currentData.valleys_start.data, y],
-        time: [...currentData.valleys_start.time, x],
-      };
-      updateCurrentTaskData({ ...currentData, valleys_start: newValleyStart });
-      setQuickAdd((q) => ({ ...q, peakLowStart: false }));
-      setRevision((r) => r + 1);
-      updateRadarTable();
-    } else if (quickAdd.peakLowEnd) {
-      const newValleyEnd = {
-        data: [...currentData.valleys_end.data, y],
-        time: [...currentData.valleys_end.time, x],
-      };
-      updateCurrentTaskData({ ...currentData, valleys_end: newValleyEnd });
-      setQuickAdd((q) => ({ ...q, peakLowEnd: false }));
-      setRevision((r) => r + 1);
-      updateRadarTable();
-    }
-  };
-
-  // Cycle addition logic
-  const addNewPeakAndValley = (data) => {
-    const { x, y } = data.points[0];
-    if (addPointName === 'valley_start') {
-      if (isBetweenValleys(x)) {
-        showPopUp(
-          'You are trying to place a valley start that overlaps another cycle. Choose a different point.'
-        );
-      } else {
-        const newValleyStart = {
-          data: [...currentData.valleys_start.data, y],
-          time: [...currentData.valleys_start.time, x],
-        };
-        updateCurrentTaskData({ ...currentData, valleys_start: newValleyStart });
-        setAddPointName('peak');
-        setBlurEnd(x);
-        setBlurStart(getNextClosestPoint(x));
-        showPopUp('Next, select the new peak point.');
-      }
-      setRevision((r) => r + 1);
-    } else if (addPointName === 'peak') {
-      if (validatePeak(x)) {
-        const newPeaks = {
-          data: [...currentData.peaks.data, y],
-          time: [...currentData.peaks.time, x],
-        };
-        updateCurrentTaskData({ ...currentData, peaks: newPeaks });
-        setAddPointName('valley_end');
-        setBlurEnd(x);
-        setBlurStart(getNextClosestPoint(x));
-        showPopUp('Finally, select the new valley end point.');
-      } else {
-        showPopUp('Peak is overlapping with an existing cycle range.');
-      }
-      setRevision((r) => r + 1);
-    } else if (addPointName === 'valley_end') {
-      if (validateValleyEnd(x)) {
-        const newValleyEnd = {
-          data: [...currentData.valleys_end.data, y],
-          time: [...currentData.valleys_end.time, x],
-        };
-        const updatedData = { ...currentData, valleys_end: newValleyEnd };
-        updateCurrentTaskData(updatedData);
-        cancelCurrentTask();
-        handleJSONUpload(true, updatedData);
-      } else {
-        showPopUp('Valley end is overlapping with an existing cycle range.');
-      }
-      setRevision((r) => r + 1);
-    }
-  };
-
-  // Cycle removal logic
-  const removePeakAndValley = () => {
-    const idx = selectedPoint.idx;
-    if (idx < 0 || idx >= currentData.peaks.data.length) return;
-  
-    const newPeaks = {
-      data: currentData.peaks.data.filter((_, i) => i !== idx),
-      time: currentData.peaks.time.filter((_, i) => i !== idx),
-    };
-    const newValleyStart = {
-      data: currentData.valleys_start.data.filter((_, i) => i !== idx),
-      time: currentData.valleys_start.time.filter((_, i) => i !== idx),
-    };
-    const newValleyEnd = {
-      data: currentData.valleys_end.data.filter((_, i) => i !== idx),
-      time: currentData.valleys_end.time.filter((_, i) => i !== idx),
-    };
-  
-    const updatedData = {
-      ...currentData,
-      peaks: newPeaks,
-      valleys_start: newValleyStart,
-      valleys_end: newValleyEnd,
-    };
-    // Update state with the new data
-    updateCurrentTaskData(updatedData);
-    handleJSONUpload(true, updatedData);
-    updateRadarTable(updatedData);
-    cancelCurrentTask();
-    setRevision((r) => r + 1);
-  };
-  
-
+  // ------------------ Update radar table ------------------
   const updateRadarTable = async (dataToUse = null) => {
     try {
       const dataForUpdate = dataToUse || currentData;
@@ -389,14 +438,8 @@ const WavePlotEditable = ({
       console.error('Failed to update plot data:', error);
     }
   };
-  
 
-  const continueAlert = () => {
-    setAlertPopup({ msg: '', show: false });
-    removePeakAndValley();
-  };
-
-  // Define shapes for the Plotly layout using current linePlot data
+  // ------------------ Plotly shapes ------------------
   const shapes = [
     {
       type: 'line',
@@ -431,90 +474,123 @@ const WavePlotEditable = ({
     },
   ];
 
+  // ------------------ Render ------------------
   return (
     <div className="relative flex flex-col items-center p-4">
       <div className="w-full max-w-5xl">
-      <Plot
-        ref={plotRef}
-        data={[
-          {
-            y: currentData.linePlot.data,
-            x: currentData.linePlot.time,
-            type: 'scatter',
-            mode: 'lines',
-            marker: { color: '#1f77b4' },
-          },
-          {
-            y: currentData.peaks.data,
-            x: currentData.peaks.time,
-            name: 'peak values',
-            type: 'scatter',
-            mode: 'markers',
-            marker: { size: 10, color: '#41337A' },
-          },
-          {
-            y: currentData.valleys_start.data,
-            x: currentData.valleys_start.time,
-            name: 'valley start',
-            type: 'scatter',
-            mode: 'markers',
-            marker: { size: 10, color: '#76B041' },
-          },
-          {
-            y: currentData.valleys_end.data,
-            x: currentData.valleys_end.time,
-            name: 'valley end',
-            type: 'scatter',
-            mode: 'markers',
-            marker: { size: 10, color: 'red' },
-          },
-          {
-            y: selectedPoint.peak_data,
-            x: selectedPoint.peak_time,
-            name: 'Selected Point',
-            type: 'scatter',
-            mode: 'markers',
-            marker: { size: 13, color: '#01FDF6' },
-          },
-        ]}
-        revision={revision}
-        onClick={handleClickOnPlot}
-        config={{
-          modeBarButtonsToRemove: [
-            'zoom2d',
-            'select2d',
-            'lasso2d',
-            'resetScale2d',
-          ],
-          responsive: true,
-          displaylogo: false,
-          scrollZoom: true,
-          toImageButtonOptions: {
-            filename: tasks[selectedTaskIndex].fileName
-              ? tasks[selectedTaskIndex].fileName + '_waveplot'
-              : 'WavePlot',
-          },
-        }}
-        layout={{
-          shapes,
-          dragmode: 'pan',
-          xaxis: { title: 'Time [s]', range: [startTime, endTime] },
-          yaxis: { title: 'Distance' },
-          height: 400,
-          margin: { t: 10, r: 10, b: 40, l: 50 },
-          datarevision: revision,
-          uirevision: true,
-        }}
-        style={{ width: '100%' }}
-      />
+        <Plot
+          ref={plotRef}
+          data={[
+            {
+              y: currentData.linePlot.data,
+              x: currentData.linePlot.time,
+              type: 'scatter',
+              mode: 'lines',
+              marker: { color: '#1f77b4' },
+            },
+            {
+              y: currentData.peaks.data,
+              x: currentData.peaks.time,
+              name: 'peak values',
+              type: 'scatter',
+              mode: 'markers',
+              marker: { size: 10, color: '#41337A' },
+            },
+            {
+              y: currentData.valleys_start.data,
+              x: currentData.valleys_start.time,
+              name: 'valley start',
+              type: 'scatter',
+              mode: 'markers',
+              marker: { size: 10, color: '#76B041' },
+            },
+            {
+              y: currentData.valleys_end.data,
+              x: currentData.valleys_end.time,
+              name: 'valley end',
+              type: 'scatter',
+              mode: 'markers',
+              marker: { size: 10, color: 'red' },
+            },
+            {
+              y: selectedPoint.peak_data,
+              x: selectedPoint.peak_time,
+              name: 'Selected Point',
+              type: 'scatter',
+              mode: 'markers',
+              marker: { size: 13, color: '#01FDF6' },
+            },
 
+            // ------------------ NEW TRACES for Pending Points ------------------
+            // Show pending valley start (if we have one)
+            {
+              y: tempCycle.valleyStart ? [tempCycle.valleyStart.y] : [],
+              x: tempCycle.valleyStart ? [tempCycle.valleyStart.x] : [],
+              name: 'Pending Valley Start',
+              type: 'scatter',
+              mode: 'markers',
+              marker: {
+                size: 12,
+                color: 'green',
+                symbol: 'diamond-open',
+                line: { width: 2, color: 'green' },
+              },
+            },
+            // Show pending peak (if we have one)
+            {
+              y: tempCycle.peak ? [tempCycle.peak.y] : [],
+              x: tempCycle.peak ? [tempCycle.peak.x] : [],
+              name: 'Pending Peak',
+              type: 'scatter',
+              mode: 'markers',
+              marker: {
+                size: 12,
+                color: 'purple',
+                symbol: 'diamond-open',
+                line: { width: 2, color: 'purple' },
+              },
+            },
+          ]}
+          revision={revision}
+          onClick={handleClickOnPlot}
+          config={{
+            modeBarButtonsToRemove: [
+              'zoom2d',
+              'select2d',
+              'lasso2d',
+              'resetScale2d',
+            ],
+            responsive: true,
+            displaylogo: false,
+            scrollZoom: true,
+            toImageButtonOptions: {
+              filename: tasks[selectedTaskIndex].fileName
+                ? tasks[selectedTaskIndex].fileName + '_waveplot'
+                : 'WavePlot',
+            },
+          }}
+          layout={{
+            shapes,
+            dragmode: 'pan',
+            xaxis: { title: 'Time [s]', range: [startTime, endTime] },
+            yaxis: { title: 'Distance' },
+            height: 400,
+            margin: { t: 10, r: 10, b: 40, l: 50 },
+            datarevision: revision,
+            uirevision: true,
+          }}
+          style={{ width: '100%' }}
+        />
       </div>
+
+      {/* Buttons and Popups */}
       <div className="relative w-full max-w-5xl mt-4">
         <div className="flex justify-center gap-4">
           <Button
             variant="contained"
             onClick={() => {
               setTaskFlags({ addNew: true, remove: false });
+              setAddPointName('valley_start');
               showPopUp('Please select the new valley start point.');
             }}
             sx={{
@@ -528,11 +604,12 @@ const WavePlotEditable = ({
           >
             Add Cycle
           </Button>
+
           <Button
             variant="contained"
             onClick={() => {
               setTaskFlags({ addNew: false, remove: true });
-              showPopUp('Please click on any point from the cycle to remove it.');
+              showPopUp('Click on any point from the cycle you want to remove.');
             }}
             sx={{
               bgcolor: 'primary.main',
@@ -546,6 +623,7 @@ const WavePlotEditable = ({
             Remove Cycle
           </Button>
         </div>
+
         {popup.show && (
           <div
             className="absolute left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg mt-2 w-3/4 max-w-xl z-50"
@@ -563,6 +641,7 @@ const WavePlotEditable = ({
             </div>
           </div>
         )}
+
         {alertPopup.show && (
           <div
             className="absolute left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg mt-2 w-3/4 max-w-xl z-50"
