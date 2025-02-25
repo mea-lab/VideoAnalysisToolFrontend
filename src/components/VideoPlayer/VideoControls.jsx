@@ -2,7 +2,7 @@ import { Pause, PlayArrow } from '@mui/icons-material';
 import React, { useEffect } from 'react';
 import Tooltip from '@mui/material/Tooltip';
 
-const VideoControls = ({ videoRef, isPlaying, fps }) => {
+const VideoControls = ({ videoRef, fps }) => {
   const checkVideoLoaded = () => {
     const video = videoRef.current;
     if (!video) return false;
@@ -75,7 +75,7 @@ const VideoControls = ({ videoRef, isPlaying, fps }) => {
         <button onClick={() => changeVideoFrame(-1)}> -1 </button>
       </Tooltip>
       <Tooltip title="Space Bar">
-        {isPlaying ? (
+        {!videoRef.current?.paused ? (
           <Pause className="cursor-pointer" onClick={playOrPause} />
         ) : (
           <PlayArrow className="cursor-pointer" onClick={playOrPause} />

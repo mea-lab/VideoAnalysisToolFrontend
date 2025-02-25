@@ -117,15 +117,15 @@ const ScatterPlot = ({ tasks, selectedTaskIndex, fileName }) => {
         <Plot data={plotlyData} config={plotlyConfig} layout={plotlyLayout} onClick={handlePlotClick} />
       )}
       {tableView && (
-        <div className="p-4">
+        <div className="p-10">
           <div className="overflow-x-auto rounded-lg shadow-lg">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-gray-200 rounded-lg">
+              <thead className="bg-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                     Attribute
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
                     Value
                   </th>
                 </tr>

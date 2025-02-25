@@ -1,5 +1,5 @@
-// src/components/commons/VideoPlayer/BoundingBoxesOverlay.jsx
-import React, { useRef, useEffect } from 'react';
+// src/components/VideoPlayer/InteractiveOverlay.jsx
+import React, { useRef, useEffect, useState } from 'react';
 
 const ResizeHandles = ({ x, y, width, height, onResize, item, index, handleSize = 12.5 }) => {
   const handles = [
@@ -58,7 +58,6 @@ const InteractiveOverlays = ({
   setBoundingBoxes,
   taskBoxes,
   setTaskBoxes,
-  currentFrame,
   persons,
   zoomLevel,
   panOffset,
@@ -70,15 +69,29 @@ const InteractiveOverlays = ({
   fps,
   videoRef,
 }) => {
-  // Only render overlays when the video is paused.
-  // if (videoRef && videoRef.current && !videoRef.current.paused) {
-  //   return null;
-  // }
-
   const svgRef = useRef(null);
   const resizingTaskRef = useRef(null);
   const draggingTaskRef = useRef(null);
   const initialTaskBoxRef = useRef(null);
+  const [currentFrameLocal, setCurrentFrameLocal] = useState(0);
+
+  // Register a VideoFrameCallback to update the current frame continuously.
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    let frameCallbackId;
+    const updateFrame = (now, metadata) => {
+      const frame = Math.round(metadata.mediaTime * fps);
+      setCurrentFrameLocal(frame);
+      frameCallbackId = video.requestVideoFrameCallback(updateFrame);
+    };
+    frameCallbackId = video.requestVideoFrameCallback(updateFrame);
+    return () => {
+      if (video.cancelVideoFrameCallback) {
+        video.cancelVideoFrameCallback(frameCallbackId);
+      }
+    };
+  }, [videoRef, fps]);
 
   // Convert pointer events to SVG coordinates.
   const getSVGPoint = (evt) => {
@@ -189,7 +202,7 @@ const InteractiveOverlays = ({
   let taskToRender = null;
   let taskIndex = -1;
   if (screen === 'tasks') {
-    const currentTime = currentFrame / fps;
+    const currentTime = currentFrameLocal / fps;
     taskIndex = taskBoxes.findIndex((t) => currentTime >= t.start && currentTime <= t.end);
     if (taskIndex !== -1) {
       taskToRender = taskBoxes[taskIndex];
@@ -249,9 +262,9 @@ const InteractiveOverlays = ({
           />
         </g>
       ) : (
-        // Render all bounding boxes
+        // Render all bounding boxes for the current frame
         boundingBoxes
-          .filter((box) => box.frameNumber === currentFrame)
+          .filter((box) => box.frameNumber === currentFrameLocal)
           .map((box) =>
             box.data.map((boxData, index) => {
               const x = boxData.x ?? 10;

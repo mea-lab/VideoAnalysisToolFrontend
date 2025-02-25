@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import WaveImage from './WaveImage';
 import ScatterPlot from './ScatterPlot';
+import WavePlotEditable from './WavePlotEditable';
+
 
 const PlotWidget = ({
   selectedTaskIndex,
@@ -13,10 +14,10 @@ const PlotWidget = ({
   handleJSONUpload,
 }) => {
   return (
-    <div className="overflow-scroll">
+    <div className="flex flex-col overflow-auto">
       <div className="pt-2 border-b border-gray-300">
         {tasks[selectedTaskIndex].data?.linePlot ? (
-          <WaveImage
+          <WavePlotEditable
             selectedTaskIndex={selectedTaskIndex}
             tasks={tasks}
             setTasks={setTasks}

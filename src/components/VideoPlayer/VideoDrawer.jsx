@@ -1,17 +1,16 @@
-// src/components/commons/VideoPlayer/MarksOverlay.jsx
+// src/components/VideoPlayer/VideoDrawer.jsx
 import React, { useEffect, useRef, useCallback } from 'react';
 
 const VideoDrawer = ({
   videoRef,
-  boundingBoxes = [],
-  fps = 30,
-  persons = [],
-  screen = 'default',
-  taskBoxes = [],
+  boundingBoxes,
+  fps,
+  persons,
+  taskBoxes,
   landMarks,
   selectedTask,
-  setTaskBoxes,
   style,
+  screen = 'default',
 }) => {
   const canvasRef = useRef(null);
   const currentFrame = useRef(-1);
@@ -45,46 +44,29 @@ const VideoDrawer = ({
   const drawBoundingBoxes = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
+    if (videoRef && videoRef.current && videoRef.current.paused) return;
     const ctx = canvas.getContext('2d');
     const boxData = boundingBoxes.find(
       (box) => box.frameNumber === currentFrame.current
     );
+  
     if (boxData && boxData.data) {
-      console.log('bounding boxes', boxData);
       boxData.data.forEach((box) => {
+        const x = Math.round(box.x) + 0.5;
+        const y = Math.round(box.y) + 0.5;
+        const width = Math.round(box.width);
+        const height = Math.round(box.height);
+  
         ctx.beginPath();
         ctx.strokeStyle = persons.find((p) => p.id === box.id && p.isSubject)
           ? 'green'
           : 'red';
-        ctx.lineWidth = 8;
-        ctx.rect(box.x, box.y, box.width, box.height);
+        ctx.lineWidth = 10;
+        ctx.rect(x, y, width, height);
         ctx.stroke();
-        // Draw the ID text
-        ctx.font = '32px Arial';
-        ctx.fillStyle = 'yellow';
-        ctx.fillText(box.id, box.x + 5, box.y - 5);
       });
     }
-  }, [boundingBoxes, persons]);
-
-  const drawTaskBoxes = useCallback(
-    (currentTime) => {
-      const canvas = canvasRef.current;
-      if (!canvas) return;
-      const ctx = canvas.getContext('2d');
-      const task = taskBoxes.find(
-        (t) => currentTime >= t.start && currentTime <= t.end
-      );
-      if (task) {
-        ctx.beginPath();
-        ctx.strokeStyle = 'green';
-        ctx.lineWidth = 8;
-        ctx.rect(task.x, task.y, task.width, task.height);
-        ctx.stroke();
-      }
-    },
-    [taskBoxes]
-  );
+  }, [boundingBoxes, persons, videoRef]);
 
   const drawLandMarks = useCallback(
     (currentTime) => {
@@ -130,8 +112,7 @@ const VideoDrawer = ({
     [taskBoxes, selectedTask, fps, landMarks]
   );
 
-  // Main draw function that ensures the video frame is drawn first,
-  // then overlays (e.g. landmarks) are drawn on top.
+  // Modified drawFrame: we only draw bounding boxes when not in a taskBox time interval.
   const drawFrame = useCallback(
     (currentTime) => {
       const video = videoRef.current;
@@ -144,20 +125,17 @@ const VideoDrawer = ({
       clearCanvas();
       drawVideoFrame();
 
-      // Draw overlay elements based on the screen mode.
-      if (screen === 'tasks') {
-        // Uncomment the following lines to draw bounding boxes or task boxes if needed.
-        // drawBoundingBoxes();
-        // drawTaskBoxes(currentTime);
-      } else if (screen === 'taskDetails') {
-        // Draw landmarks on top of the video frame.
+      // Check if currentTime is within any taskBox's time window.
+      const inTaskTime = taskBoxes.some((task) => currentTime >= task.start && currentTime <= task.end);
+      if (screen == 'tasks' && !inTaskTime) {
+        drawBoundingBoxes();
+      }
+
+      if (screen === 'taskDetails') {
         drawLandMarks(currentTime);
-      } else {
-        // Other overlays can be added here if needed.
-        // drawBoundingBoxes();
       }
     },
-    [getFrameNumber, clearCanvas, drawVideoFrame, screen, drawLandMarks]
+    [getFrameNumber, clearCanvas, drawVideoFrame, drawBoundingBoxes, drawLandMarks, taskBoxes, screen, videoRef]
   );
 
   // Set canvas dimensions and start the continuous render loop.
@@ -181,13 +159,11 @@ const VideoDrawer = ({
   
     let frameCallbackId;
     const render = (now, metadata) => {
-      // metadata.mediaTime gives the current playback time (in seconds)
       drawFrame(metadata.mediaTime);
       frameCallbackId = video.requestVideoFrameCallback(render);
     };
   
-    frameCallbackId = video.requestVideoFrameCallback(render);
-  
+    frameCallbackId = video.requestVideoFrameCallback(render);  
     return () => {
       video.removeEventListener('loadedmetadata', setCanvasDimensions);
       if (video.cancelVideoFrameCallback) {
@@ -195,14 +171,12 @@ const VideoDrawer = ({
       }
     };
   }, [videoRef, drawFrame]);
-  
 
   // Redraw when external dependencies change.
   useEffect(() => {
     lastDrawnFrame.current = -1;
-    const video = videoRef.current;
-    if (video) {
-      drawFrame(video.currentTime);
+    if (videoRef?.current) {
+      drawFrame(videoRef.current.currentTime);
     }
   }, [persons, taskBoxes, landMarks, selectedTask, screen, drawFrame, videoRef]);
 

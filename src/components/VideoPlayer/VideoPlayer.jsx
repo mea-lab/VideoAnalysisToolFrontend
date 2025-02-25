@@ -22,7 +22,6 @@ const VideoPlayer = ({
   landMarks,
   selectedTask,
 }) => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
@@ -228,7 +227,7 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
-                  opacity: 0, //video element should not show the video because it buffers, marks overlay draws it
+                  opacity: 0, //video element is hidden as it buffers, video drawer will draw the video frames
                 }}
                 onLoadedMetadata={() => {
                   setVideoReady(true);
@@ -238,21 +237,17 @@ const VideoPlayer = ({
                     height: videoRef.current.videoHeight,
                   });
                 }}
-                onPlay={() => setIsPlaying(true)}
-                onPause={() => setIsPlaying(false)}
                 loop
               />
               <VideoDrawer
-                videoURL={videoURL}
                 videoRef={videoRef}
                 boundingBoxes={boundingBoxes}
                 fps={fps}
                 persons={persons}
-                screen={screen}
                 taskBoxes={taskBoxes}
                 landMarks={landMarks}
                 selectedTask={selectedTask}
-                setTaskBoxes={setTaskBoxes}
+                screen={screen}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -304,7 +299,7 @@ const VideoPlayer = ({
           </div>
 
           <div className="flex items-center pb-4 justify-center">
-            <VideoControls videoRef={videoRef} isPlaying={isPlaying} fps={fps} />
+            <VideoControls videoRef={videoRef} fps={fps} />
           </div>
         </div>
       )}

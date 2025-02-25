@@ -24,11 +24,9 @@ const WavePlotEditable = ({
   const [addPointName, setAddPointName] = useState('valley_start');
   const [isMarkUp, setIsMarkUp] = useState(false);
 
-  // Temporary state for the cycle the user is adding
-  // We'll show them on the plot as soon as they're validated
   const [tempCycle, setTempCycle] = useState({
-    valleyStart: null, // { x, y }
-    peak: null,        // { x, y }
+    valleyStart: null,
+    peak: null,
   });
 
   const [revision, setRevision] = useState(0);
@@ -139,7 +137,6 @@ const WavePlotEditable = ({
     setTaskFlags({ addNew: false, remove: false });
     setSelectedPoint({});
     setAddPointName('valley_start');
-    // Reset the partial cycle
     setTempCycle({ valleyStart: null, peak: null });
     resetBlur();
   };
@@ -476,14 +473,15 @@ const WavePlotEditable = ({
 
   // ------------------ Render ------------------
   return (
-    <div className="relative flex flex-col items-center p-4">
-      <div className="w-full max-w-5xl">
+    <div className="relative flex flex-col items-center pr-8 pl-8 pb-8">
+      <div className="w-full max-w-5xl p-4 bg-white rounded-xl">
         <Plot
           ref={plotRef}
           data={[
             {
               y: currentData.linePlot.data,
               x: currentData.linePlot.time,
+              name: 'Trace',
               type: 'scatter',
               mode: 'lines',
               marker: { color: '#1f77b4' },
@@ -491,7 +489,7 @@ const WavePlotEditable = ({
             {
               y: currentData.peaks.data,
               x: currentData.peaks.time,
-              name: 'peak values',
+              name: 'Peak values',
               type: 'scatter',
               mode: 'markers',
               marker: { size: 10, color: '#41337A' },
@@ -499,7 +497,7 @@ const WavePlotEditable = ({
             {
               y: currentData.valleys_start.data,
               x: currentData.valleys_start.time,
-              name: 'valley start',
+              name: 'Valley start',
               type: 'scatter',
               mode: 'markers',
               marker: { size: 10, color: '#76B041' },
@@ -507,7 +505,7 @@ const WavePlotEditable = ({
             {
               y: currentData.valleys_end.data,
               x: currentData.valleys_end.time,
-              name: 'valley end',
+              name: 'Valley end',
               type: 'scatter',
               mode: 'markers',
               marker: { size: 10, color: 'red' },
@@ -572,14 +570,38 @@ const WavePlotEditable = ({
           layout={{
             shapes,
             dragmode: 'pan',
-            xaxis: { title: 'Time [s]', range: [startTime, endTime] },
-            yaxis: { title: 'Distance' },
+            xaxis: {
+              title: {
+                'text': 'Time [s]',
+                standoff: 20,
+              },
+              range: [startTime, endTime]
+            },
+            yaxis: {
+              title: {
+                text: 'Distance',
+                standoff: 20,
+              },
+              automargin: true,
+            },
             height: 400,
             margin: { t: 10, r: 10, b: 40, l: 50 },
+            legend: {
+              x: 1,
+              y: 1,
+              xanchor: 'right',
+              yanchor: 'top',
+              bgcolor: 'rgba(255, 255, 255, 0.75)',
+              font: {
+                color: 'rgba(0, 0, 0,0.9)',
+                size: 12,
+                family: 'Arial, sans-serif',
+              },
+            },            
             datarevision: revision,
             uirevision: true,
           }}
-          style={{ width: '100%' }}
+          style={{ width: '100%', borderRadius: '1rem', overflow: 'hidden' }}
         />
       </div>
 
