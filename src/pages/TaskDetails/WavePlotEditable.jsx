@@ -191,7 +191,7 @@ const WavePlotEditable = ({
     // Remove cycle logic
     if (!isMarkUp && taskFlags.remove) {
       const name = plotSeries.name;
-      if (['peak values', 'valley start', 'valley end'].includes(name)) {
+      if (['Peak values', 'Valley start', 'Valley end'].includes(name)) {
         const idx = findIndexForClickedPoint(name, x, y);
         if (idx !== -1) {
           setSelectedPoint({ idx, name });
@@ -374,9 +374,9 @@ const WavePlotEditable = ({
 
   // ------------------ Helpers for picking existing points ------------------
   const getPointArrays = (name) => {
-    if (name === 'peak values') return currentData.peaks;
-    if (name === 'valley start') return currentData.valleys_start;
-    if (name === 'valley end') return currentData.valleys_end;
+    if (name === 'Peak values') return currentData.peaks;
+    if (name === 'Valley start') return currentData.valleys_start;
+    if (name === 'Valley end') return currentData.valleys_end;
     return { data: [], time: [] };
   };
 
