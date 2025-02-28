@@ -236,7 +236,7 @@ const InteractiveOverlays = ({
         pointerEvents: 'all',
       }}
     >
-      {(screen === 'tasks' || screen === 'taskDetails') && taskToRender ? (
+      {((screen === 'tasks' || screen === 'taskDetails') && taskToRender) && (
         <g key={`task-${taskIndex}`}>
           <rect
             x={taskToRender.x}
@@ -261,37 +261,6 @@ const InteractiveOverlays = ({
             index={taskIndex}
           />
         </g>
-      ) : (
-        // Render all bounding boxes for the current frame
-        boundingBoxes
-          .filter((box) => box.frameNumber === currentFrameLocal)
-          .map((box) =>
-            box.data.map((boxData, index) => {
-              const x = boxData.x ?? 10;
-              const y = boxData.y ?? 10;
-              const width = boxData.width ?? 200;
-              const height = boxData.height ?? 200;
-              const strokeColor = persons.find((p) => p.id === boxData.id && p.isSubject)
-                ? 'green'
-                : 'red';
-              return (
-                <g key={`${boxData.id}-${box.frameNumber}-${index}`}>
-                  <rect
-                    x={x}
-                    y={y}
-                    width={width}
-                    height={height}
-                    stroke={strokeColor}
-                    strokeWidth={strokeThickness}
-                    fill="none"
-                    pointerEvents="stroke"
-                    onMouseEnter={() => handleBoxHover(boxData.id)}
-                    onClick={() => handleBoxClick(boxData.id)}
-                  />
-                </g>
-              );
-            })
-          )
       )}
     </svg>
   );

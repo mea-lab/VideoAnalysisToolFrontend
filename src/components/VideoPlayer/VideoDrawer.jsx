@@ -44,7 +44,6 @@ const VideoDrawer = ({
   const drawBoundingBoxes = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    if (videoRef && videoRef.current && videoRef.current.paused) return;
     const ctx = canvas.getContext('2d');
     const boxData = boundingBoxes.find(
       (box) => box.frameNumber === currentFrame.current
@@ -68,8 +67,7 @@ const VideoDrawer = ({
     }
   }, [boundingBoxes, persons, videoRef]);
 
-  const drawLandMarks = useCallback(
-    (currentTime) => {
+  const drawLandMarks = useCallback(() => {
       if (!taskBoxes.length || selectedTask == null) return;
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -113,8 +111,7 @@ const VideoDrawer = ({
   );
 
   // Modified drawFrame: we only draw bounding boxes when not in a taskBox time interval.
-  const drawFrame = useCallback(
-    (currentTime) => {
+  const drawFrame = useCallback((currentTime) => {
       const video = videoRef.current;
       if (!video) return;
       const frameNumber = getFrameNumber(currentTime);
@@ -127,12 +124,12 @@ const VideoDrawer = ({
 
       // Check if currentTime is within any taskBox's time window.
       const inTaskTime = taskBoxes.some((task) => currentTime >= task.start && currentTime <= task.end);
-      if (screen == 'tasks' && !inTaskTime) {
+      if (!inTaskTime) {
         drawBoundingBoxes();
       }
 
       if (screen === 'taskDetails') {
-        drawLandMarks(currentTime);
+        drawLandMarks();
       }
     },
     [getFrameNumber, clearCanvas, drawVideoFrame, drawBoundingBoxes, drawLandMarks, taskBoxes, screen, videoRef]

@@ -22,6 +22,7 @@ const VideoPlayer = ({
   landMarks,
   selectedTask,
 }) => {
+  const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const containerRef = useRef(null);
@@ -237,7 +238,8 @@ const VideoPlayer = ({
                     height: videoRef.current.videoHeight,
                   });
                 }}
-                loop
+                onPlay={() => setIsPlaying(true)}
+                onPause={() => setIsPlaying(false)}
               />
               <VideoDrawer
                 videoRef={videoRef}
@@ -299,7 +301,7 @@ const VideoPlayer = ({
           </div>
 
           <div className="flex items-center pb-4 justify-center">
-            <VideoControls videoRef={videoRef} fps={fps} />
+            <VideoControls videoRef={videoRef} fps={fps} isPlaying={isPlaying}/>
           </div>
         </div>
       )}

@@ -59,19 +59,20 @@ const Task = ({
   return (
     <div className={'flex justify-between gap-2'} key={task.id}>
       <div className={'w-1/4'}>
-        <Creatable
-          options={options}
-          value={{ label: task.name, value: task.name }}
-          onChange={handleTaskChange}
-          placeholder={'Select or add'}
-          styles={{
-            control: (baseStyles, state) => ({
-              ...baseStyles,
-              borderColor: getSelectBorderColor(),
-              borderWidth: 2,
-            }),
-          }}
-        />
+      <Creatable
+        options={options}
+        value={{ label: task.name, value: task.name }}
+        onChange={handleTaskChange}
+        placeholder={'Select or add'}
+        blurInputOnSelect
+        styles={{
+          control: (baseStyles) => ({
+            ...baseStyles,
+            borderColor: getSelectBorderColor(),
+            borderWidth: 2,
+          }),
+        }}
+      />
       </div>
       <input
         className={'p-2 w-1/4'}
