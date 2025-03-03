@@ -29,7 +29,9 @@ const WavePlotEditable = ({
     peak: null,
   });
 
-  const [revision, setRevision] = useState(0);
+  // Separate revisions for data and UI to prevent zoom stuttering
+  const [dataRevision, setDataRevision] = useState(0);
+  const [uiRevision, setUiRevision] = useState("stable");
 
   // For quick-add (Q, W, E)
   const [quickAdd, setQuickAdd] = useState({
@@ -79,7 +81,8 @@ const WavePlotEditable = ({
 
     const timeUpdateHandler = () => {
       setVideoCurrentTime(videoEl.currentTime);
-      setRevision((r) => r + 1);
+      // Only update data revision, not UI revision
+      setDataRevision((r) => r + 1);
     };
 
     videoEl.addEventListener('play', playHandler);
@@ -212,7 +215,7 @@ const WavePlotEditable = ({
         const found = handleSelectElementFromArray(name, x);
         if (found) setSelectedPoint(found);
       }
-      setRevision((r) => r + 1);
+      setDataRevision((r) => r + 1);
     } else if (isMarkUp && selectedPoint.name === 'peak values') {
       // repositioning an existing peak
       const idx = selectedPoint.idx;
@@ -228,7 +231,7 @@ const WavePlotEditable = ({
         setSelectedPoint({});
         resetBlur();
         setIsMarkUp(false);
-        setRevision((r) => r + 1);
+        setDataRevision((r) => r + 1);
       } else {
         showPopUp('Peak must lie within the valley start/end range.');
       }
@@ -247,7 +250,7 @@ const WavePlotEditable = ({
       setTempCycle({ valleyStart: { x, y }, peak: null });
       setAddPointName('peak');
       showPopUp('Next, select the new peak point.');
-      setRevision((r) => r + 1);
+      setDataRevision((r) => r + 1);
 
     } else if (addPointName === 'peak') {
       // 2) Validate peak
@@ -267,7 +270,7 @@ const WavePlotEditable = ({
       setTempCycle((prev) => ({ ...prev, peak: { x, y } }));
       setAddPointName('valley_end');
       showPopUp('Finally, select the new valley end point.');
-      setRevision((r) => r + 1);
+      setDataRevision((r) => r + 1);
 
     } else if (addPointName === 'valley_end') {
       // 3) Validate valley end
@@ -310,7 +313,7 @@ const WavePlotEditable = ({
 
       // Reset so we can add another cycle if we want
       cancelCurrentTask();
-      setRevision((r) => r + 1);
+      setDataRevision((r) => r + 1);
     }
   };
 
@@ -343,7 +346,7 @@ const WavePlotEditable = ({
     updateRadarTable(updatedData);
 
     cancelCurrentTask();
-    setRevision((r) => r + 1);
+    setDataRevision((r) => r + 1);
   };
 
   const continueAlert = () => {
@@ -368,7 +371,7 @@ const WavePlotEditable = ({
       setQuickAdd((q) => ({ ...q, peakLowEnd: false }));
     }
     updateCurrentTaskData(dataCopy);
-    setRevision((r) => r + 1);
+    setDataRevision((r) => r + 1);
     updateRadarTable(dataCopy);
   };
 
@@ -549,14 +552,11 @@ const WavePlotEditable = ({
               },
             },
           ]}
-          revision={revision}
           onClick={handleClickOnPlot}
           config={{
             modeBarButtonsToRemove: [
-              'zoom2d',
               'select2d',
               'lasso2d',
-              'resetScale2d',
             ],
             responsive: true,
             displaylogo: false,
@@ -575,7 +575,8 @@ const WavePlotEditable = ({
                 'text': 'Time [s]',
                 standoff: 20,
               },
-              range: [startTime, endTime]
+              range: [startTime, endTime],
+              fixedrange: false,
             },
             yaxis: {
               title: {
@@ -583,6 +584,7 @@ const WavePlotEditable = ({
                 standoff: 20,
               },
               automargin: true,
+              fixedrange: false,
             },
             height: 400,
             margin: { t: 10, r: 10, b: 40, l: 50 },
@@ -597,11 +599,16 @@ const WavePlotEditable = ({
                 size: 12,
                 family: 'Arial, sans-serif',
               },
-            },            
-            datarevision: revision,
-            uirevision: true,
+            },
+            datarevision: dataRevision,
+            uirevision: uiRevision,
           }}
-          style={{ width: '100%', borderRadius: '1rem', overflow: 'hidden' }}
+          style={{ 
+            width: '100%', 
+            borderRadius: '1rem', 
+            overflow: 'hidden' 
+          }}
+          useResizeHandler={true}
         />
       </div>
 
