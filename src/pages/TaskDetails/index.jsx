@@ -7,14 +7,6 @@ import JSONUploadDialog from './JSONUploadDialog';
 import PlotWidget from './PlotWidget';
 import { RestartAlt, CloudDownload } from '@mui/icons-material';
 
-function useDebounce(callback, delay) {
-  const timeoutRef = useRef(null);
-  return (...args) => {
-    clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => callback(...args), delay);
-  };
-}
-
 const TaskDetails = () => {
   const {
     videoReady,
@@ -51,7 +43,7 @@ const TaskDetails = () => {
         videoRef.current.currentTime = task.start;
       }
     };
-  }, [selectedTask, videoReady, tasks, videoRef]);
+  }, [selectedTask, videoReady, videoRef]);
 
   const handleProcessing = (jsonFileUploaded, jsonContent) => {
     if (jsonFileUploaded && jsonContent) {
@@ -102,53 +94,6 @@ const TaskDetails = () => {
     URL.revokeObjectURL(href);
   };
 
-  const debouncedUpdateLandmarks = useDebounce(async newLandMarks => {
-    try {
-      const { start, end, data } = tasks[selectedTask];
-      const currentTaskName = tasks[selectedTask].name;
-      const jsonData = JSON.stringify({
-        task_name: currentTaskName,
-        start_time: start,
-        end_time: end,
-        fps,
-        landmarks: data.landMarks,
-        normalization_factor: data.normalizationFactor,
-      });
-      const uploadData = new FormData();
-      uploadData.append('json_data', jsonData);
-      const response = await fetch('http://localhost:8000/api/update_landmarks/', {
-        method: 'POST',
-        body: uploadData,
-      });
-      if (response.ok) {
-        const updatedData = await response.json();
-        handleProcessing(true, updatedData);
-      } else {
-        throw new Error('Server responded with an error!');
-      }
-    } catch (error) {
-      console.error('Failed to update landmarks:', error);
-    }
-  }, 1000);
-
-  const updateNewLandMarks = newLandMarks => {
-    setTasks(prev => {
-      const newTasks = [...prev];
-      if (newTasks[selectedTask].data) {
-        newTasks[selectedTask] = {
-          ...newTasks[selectedTask],
-          data: { ...newTasks[selectedTask].data, landMarks: newLandMarks },
-        };
-      }
-      return newTasks;
-    });
-  };
-
-  const handleLandMarksChange = newLandMarks => {
-    updateNewLandMarks(newLandMarks);
-    debouncedUpdateLandmarks(newLandMarks);
-  };
-
   const commonButtonStyle = {
     bgcolor: 'primary.main',
     '&:hover': { bgcolor: 'primary.dark' },
@@ -175,9 +120,11 @@ const TaskDetails = () => {
             setVideoReady={setVideoReady}
             setVideoData={setVideoData}
             fileName={fileName}
-            landMarks={tasks[selectedTask].data?.landMarks}
+            landMarks={tasks[selectedTask]?.data?.landMarks}
             setTaskBoxes={setTaskBoxes}
             selectedTask={selectedTask}
+            tasks={tasks}
+            setTasks={setTasks}
           />
         </div>
         <div className="flex-1 flex flex-col min-w-[50%] bg-slate-50 overflow-y-auto">
@@ -187,7 +134,6 @@ const TaskDetails = () => {
             fileName={fileName}
             fps={fps}
             boundingBoxes={boundingBoxes}
-            taskBoxes={taskBoxes}
           />
           <div className="flex items-center justify-center gap-2 mt-2 mb-4">
             <div className="text-lg font-bold">Current task -</div>
@@ -205,13 +151,13 @@ const TaskDetails = () => {
             <Button variant="contained" onClick={resetTask} startIcon={<RestartAlt />} sx={commonButtonStyle}>
               Reset
             </Button>
-            {tasks[selectedTask].data && (
+            {tasks[selectedTask]?.data && (
               <Button variant="contained" onClick={DownloadCurrentTask} startIcon={<CloudDownload />} sx={commonButtonStyle}>
                 Download
               </Button>
             )}
           </div>
-          {!tasks[selectedTask].data ? (
+          {!tasks[selectedTask]?.data ? (
             <div className="flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll">
               <div>Analyze the task</div>
               <Button

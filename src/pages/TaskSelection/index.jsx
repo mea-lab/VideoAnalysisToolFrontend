@@ -141,6 +141,8 @@ const TaskSelection = () => {
             taskBoxes={taskBoxes}
             setTaskBoxes={setTaskBoxes}
             videoData={videoData}
+            tasks={tasks}
+            setTasks={setTasks}
           />
         </div>
         <div className={'flex flex-col min-h-[100vh] w-1/2 '}>

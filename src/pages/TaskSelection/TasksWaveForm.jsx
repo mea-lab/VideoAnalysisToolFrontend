@@ -87,11 +87,13 @@ const TasksWaveForm = ({
     region.remove();
     
     const newTask = { id: newId, start: startTime, end: endTime, name: regionName, data: null };
+    videoRef.current.currentTime = startTime + 0.02;
     setTasks(prev => [...prev, newTask]);
     if (!tasksReady) setTasksReady(true);
   };
   
   const handleRegionUpdated = (region) => {
+    console.log("Updated")
     if (ignoreRegionEventsRef.current) return;
     
     const startTime = parseFloat(region.start.toFixed(3));
@@ -115,16 +117,17 @@ const TasksWaveForm = ({
     
     if (startChanged) {
       if (videoRef.current) {
-        videoRef.current.currentTime = startTime;
+        videoRef.current.currentTime = startTime + 0.02;
       }
     } else if (endChanged) {
       if (videoRef.current) {
-        videoRef.current.currentTime = endTime;
+        videoRef.current.currentTime = endTime - 0.02;
       }
     }
   };
 
   const handleRegionUpdate = (region, event) => {
+    console.log("Update")
     if (ignoreRegionEventsRef.current) return;
   
     const startTime = parseFloat(region.start.toFixed(3));

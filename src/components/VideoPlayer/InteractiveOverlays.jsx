@@ -1,4 +1,3 @@
-// src/components/VideoPlayer/InteractiveOverlay.jsx
 import React, { useRef, useEffect, useState } from 'react';
 
 const ResizeHandles = ({ x, y, width, height, onResize, item, index, handleSize = 12.5 }) => {
@@ -54,35 +53,46 @@ const ResizeHandles = ({ x, y, width, height, onResize, item, index, handleSize 
 };
 
 const InteractiveOverlays = ({
-  boundingBoxes,
-  setBoundingBoxes,
+  tasks,
+  setTasks,
   taskBoxes,
   setTaskBoxes,
-  persons,
+  fileName,
   zoomLevel,
   panOffset,
   videoWidth,
   videoHeight,
   screen,
   selectedTask,
-  landMarks,
   fps,
+  isPlaying,
   videoRef,
 }) => {
   const svgRef = useRef(null);
   const resizingTaskRef = useRef(null);
   const draggingTaskRef = useRef(null);
-  const initialTaskBoxRef = useRef(null);
-  const [currentFrameLocal, setCurrentFrameLocal] = useState(0);
+  const draggingLandmarkRef = useRef(null);
+  const tasksRef = useRef(tasks);
+  const [currentFrame, setCurrentFrame] = useState(0);
+  const [landMarkIndex, setLandMarkIndex] = useState(null);
 
-  // Register a VideoFrameCallback to update the current frame continuously.
+  // Sync tasksRef with the tasks state.
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
+
+  // Video frame callback to update the current frame and landmark index.
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     let frameCallbackId;
     const updateFrame = (now, metadata) => {
       const frame = Math.round(metadata.mediaTime * fps);
-      setCurrentFrameLocal(frame);
+      setCurrentFrame(frame);
+      if (tasks[selectedTask]?.start) {
+        const offset = Math.floor(tasks[selectedTask].start * fps);
+        setLandMarkIndex(frame - offset);
+      }
       frameCallbackId = video.requestVideoFrameCallback(updateFrame);
     };
     frameCallbackId = video.requestVideoFrameCallback(updateFrame);
@@ -91,9 +101,8 @@ const InteractiveOverlays = ({
         video.cancelVideoFrameCallback(frameCallbackId);
       }
     };
-  }, [videoRef, fps]);
+  }, [videoRef, fps, isPlaying]);
 
-  // Convert pointer events to SVG coordinates.
   const getSVGPoint = (evt) => {
     const svg = svgRef.current;
     if (!svg) return { x: evt.clientX, y: evt.clientY };
@@ -104,11 +113,7 @@ const InteractiveOverlays = ({
     return ctm ? point.matrixTransform(ctm.inverse()) : { x: evt.clientX, y: evt.clientY };
   };
 
-  // (Empty functions for hover/click – implement as needed)
-  const handleBoxHover = (boxId) => {};
-  const handleBoxClick = (boxId) => {};
-
-  // === Task box resizing and dragging (for the task detail view) ===
+  // === Task box resizing and dragging functions ===
   const handleTaskResizeStart = (e, task, taskIndex, side) => {
     e.stopPropagation();
     e.preventDefault();
@@ -199,10 +204,104 @@ const InteractiveOverlays = ({
     window.removeEventListener('pointerup', handleTaskDragEnd);
   };
 
+  // === Landmark dragging functions ===
+  const handleLandmarkDragStart = (e, landmarkIdx) => {
+    e.stopPropagation();
+    e.preventDefault();
+    const svgPoint = getSVGPoint(e);
+    const taskBox = taskBoxes[selectedTask];
+    const currentLandmark = tasks[selectedTask].data.landMarks[landMarkIndex][landmarkIdx];
+    const circleCenterX = currentLandmark[0] + taskBox.x - taskBox.width * 0.125;
+    const circleCenterY = currentLandmark[1] + taskBox.y - taskBox.height * 0.125;
+    const offsetX = svgPoint.x - circleCenterX;
+    const offsetY = svgPoint.y - circleCenterY;
+    draggingLandmarkRef.current = { landmarkIdx, offsetX, offsetY };
+    window.addEventListener('pointermove', handleLandmarkDragMove);
+    window.addEventListener('pointerup', handleLandmarkDragEnd);
+  };
+
+  const handleLandmarkDragMove = (e) => {
+    if (!draggingLandmarkRef.current) return;
+    const svgPoint = getSVGPoint(e);
+    const { landmarkIdx, offsetX, offsetY } = draggingLandmarkRef.current;
+    const taskBox = taskBoxes[selectedTask];
+    const newCircleCenterX = svgPoint.x - offsetX;
+    const newCircleCenterY = svgPoint.y - offsetY;
+    const newRelativeX = newCircleCenterX - taskBox.x + taskBox.width * 0.125;
+    const newRelativeY = newCircleCenterY - taskBox.y + taskBox.height * 0.125;
+    setTasks((prevTasks) => {
+      const newTasks = [...prevTasks];
+      const task = { ...newTasks[selectedTask] };
+      const data = { ...task.data };
+      const newLandmarks = data.landMarks.slice();
+      const currentFrameLandmarks = newLandmarks[landMarkIndex].slice();
+      currentFrameLandmarks[landmarkIdx] = [newRelativeX, newRelativeY];
+      newLandmarks[landMarkIndex] = currentFrameLandmarks;
+      data.landMarks = newLandmarks;
+      task.data = data;
+      newTasks[selectedTask] = task;
+      // Update our ref immediately.
+      tasksRef.current = newTasks;
+      return newTasks;
+    });
+  };
+
+  // Call the API once dragging is finished.
+  const handleLandmarkDragEnd = async () => {
+    // Remove dragging listeners.
+    window.removeEventListener('pointermove', handleLandmarkDragMove);
+    window.removeEventListener('pointerup', handleLandmarkDragEnd);
+    draggingLandmarkRef.current = null;
+
+    // Get the latest landmarks from the ref.
+    const updatedLandmarks = tasksRef.current[selectedTask].data.landMarks;
+    console.log("Upload Data", tasksRef.current[selectedTask].data);
+
+    try {
+      const { start, end, data } = tasksRef.current[selectedTask];
+      const currentTaskName = tasksRef.current[selectedTask].name;
+      const jsonData = JSON.stringify({
+        task_name: currentTaskName,
+        start_time: start,
+        end_time: end,
+        fps,
+        landmarks: updatedLandmarks,
+        alllandmarks: data.allLandMarks,
+        normalization_factor: data.normalizationFactor,
+      });
+      const uploadData = new FormData();
+      uploadData.append('json_data', jsonData);
+      const response = await fetch('http://localhost:8000/api/update_landmarks/', {
+        method: 'POST',
+        body: uploadData,
+      });
+      if (response.ok) {
+        const updatedData = await response.json();
+        handleProcessing(true, updatedData);
+      } else {
+        throw new Error('Server responded with an error!');
+      }
+    } catch (error) {
+      console.error('Failed to update landmarks:', error);
+    }
+  };
+
+  const handleProcessing = (jsonFileUploaded, jsonContent) => {
+    console.log("Return Data", jsonContent);
+    if (jsonFileUploaded && jsonContent) {
+      const safeFileName = fileName.replace(/\.[^/.]+$/, '');
+      setTasks(prev => {
+        const newTasks = [...prev];
+        newTasks[selectedTask] = { ...newTasks[selectedTask], data: { ...jsonContent, fileName: safeFileName } };
+        return newTasks;
+      });
+    }
+  };
+
   let taskToRender = null;
   let taskIndex = -1;
   if (screen === 'tasks') {
-    const currentTime = currentFrameLocal / fps;
+    const currentTime = currentFrame / fps;
     taskIndex = taskBoxes.findIndex((t) => currentTime >= t.start && currentTime <= t.end);
     if (taskIndex !== -1) {
       taskToRender = taskBoxes[taskIndex];
@@ -213,12 +312,6 @@ const InteractiveOverlays = ({
       taskToRender = taskBoxes[selectedTask];
     }
   }
-
-  useEffect(() => {
-    if (screen === 'taskDetails' && selectedTask != null && taskBoxes[selectedTask] && !initialTaskBoxRef.current) {
-      initialTaskBoxRef.current = taskBoxes[selectedTask];
-    }
-  }, [screen, selectedTask, taskBoxes]);
 
   const strokeThickness = 10;
   return (
@@ -250,16 +343,37 @@ const InteractiveOverlays = ({
             onPointerDown={(e) => handleTaskDragStart(e, taskToRender, taskIndex)}
             style={{ cursor: 'move' }}
           />
-          <ResizeHandles
-            x={taskToRender.x}
-            y={taskToRender.y}
-            width={taskToRender.width}
-            height={taskToRender.height}
-            handleSize={strokeThickness}
-            onResize={handleTaskResizeStart}
-            item={taskToRender}
-            index={taskIndex}
-          />
+          {(!isPlaying) && (
+            <ResizeHandles
+              x={taskToRender.x}
+              y={taskToRender.y}
+              width={taskToRender.width}
+              height={taskToRender.height}
+              handleSize={strokeThickness}
+              onResize={handleTaskResizeStart}
+              item={taskToRender}
+              index={taskIndex}
+            />
+          )}
+        </g>
+      )}
+
+      {/* Render interactive red landmark circles only when the video is paused */}
+      {(!isPlaying && landMarkIndex != null && tasks?.[selectedTask]?.data?.landMarks?.[landMarkIndex]) && (
+        <g className="landmarks-group">
+          {tasks[selectedTask].data.landMarks[landMarkIndex].map((point, idx) => (
+            <circle
+              key={`landmark-${idx}`}
+              cx={point[0] + taskBoxes[selectedTask].x - taskBoxes[selectedTask].width * 0.125}
+              cy={point[1] + taskBoxes[selectedTask].y - taskBoxes[selectedTask].height * 0.125}
+              r={12.5}
+              fill="red"
+              stroke="white"
+              strokeWidth="2"
+              onPointerDown={(e) => handleLandmarkDragStart(e, idx)}
+              style={{ cursor: 'move' }}
+            />
+          ))}
         </g>
       )}
     </svg>

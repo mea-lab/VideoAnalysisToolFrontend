@@ -11,7 +11,12 @@ const WavePlotEditable = ({
   endTime,
   handleJSONUpload,
 }) => {
-  const currentData = tasks[selectedTaskIndex].data;
+  const [currentData, setCurrentData] = useState(tasks?.[selectedTaskIndex]?.data);
+
+  useEffect(() => {
+    setCurrentData(tasks[selectedTaskIndex].data);
+    setRevision((r) => r + 1);
+  }, [tasks?.[selectedTaskIndex]?.data, selectedTaskIndex]);
 
   const [videoCurrentTime, setVideoCurrentTime] = useState(startTime);
   const [blurEnd, setBlurEnd] = useState(startTime);
@@ -29,8 +34,7 @@ const WavePlotEditable = ({
     peak: null,
   });
 
-  // Removed revision state so we don't force re-renders on every video time update
-  // const [revision, setRevision] = useState(0);
+  const [revision, setRevision] = useState(0);
 
   // For quick-add (Q, W, E)
   const [quickAdd, setQuickAdd] = useState({
@@ -80,7 +84,7 @@ const WavePlotEditable = ({
 
     const timeUpdateHandler = () => {
       setVideoCurrentTime(videoEl.currentTime);
-      // Removed setRevision call to prevent continuous re-rendering.
+      setRevision((r) => r + 1);
     };
 
     videoEl.addEventListener('play', playHandler);
@@ -213,6 +217,7 @@ const WavePlotEditable = ({
         const found = handleSelectElementFromArray(name, x);
         if (found) setSelectedPoint(found);
       }
+      setRevision((r) => r + 1);
     } else if (isMarkUp && selectedPoint.name === 'peak values') {
       // repositioning an existing peak
       const idx = selectedPoint.idx;
@@ -228,6 +233,7 @@ const WavePlotEditable = ({
         setSelectedPoint({});
         resetBlur();
         setIsMarkUp(false);
+        setRevision((r) => r + 1);
       } else {
         showPopUp('Peak must lie within the valley start/end range.');
       }
@@ -246,6 +252,8 @@ const WavePlotEditable = ({
       setTempCycle({ valleyStart: { x, y }, peak: null });
       setAddPointName('peak');
       showPopUp('Next, select the new peak point.');
+      setRevision((r) => r + 1);
+
     } else if (addPointName === 'peak') {
       // 2) Validate peak
       if (!tempCycle.valleyStart) {
@@ -260,10 +268,12 @@ const WavePlotEditable = ({
         showPopUp('Peak is overlapping with an existing cycle range.');
         return;
       }
-      // Store peak in tempCycle
+      // Store peak in tempCycle => displayed immediately
       setTempCycle((prev) => ({ ...prev, peak: { x, y } }));
       setAddPointName('valley_end');
       showPopUp('Finally, select the new valley end point.');
+      setRevision((r) => r + 1);
+
     } else if (addPointName === 'valley_end') {
       // 3) Validate valley end
       if (!tempCycle.valleyStart || !tempCycle.peak) {
@@ -279,7 +289,7 @@ const WavePlotEditable = ({
         return;
       }
 
-      // Commit all three points to currentData
+      // If valid => commit all three to currentData
       const newValleysStart = {
         data: [...currentData.valleys_start.data, tempCycle.valleyStart.y],
         time: [...currentData.valleys_start.time, tempCycle.valleyStart.x],
@@ -303,8 +313,9 @@ const WavePlotEditable = ({
       updateCurrentTaskData(updatedData);
       handleJSONUpload(true, updatedData);
 
-      // Reset for the next cycle addition
+      // Reset so we can add another cycle if we want
       cancelCurrentTask();
+      setRevision((r) => r + 1);
     }
   };
 
@@ -337,6 +348,7 @@ const WavePlotEditable = ({
     updateRadarTable(updatedData);
 
     cancelCurrentTask();
+    setRevision((r) => r + 1);
   };
 
   const continueAlert = () => {
@@ -361,6 +373,7 @@ const WavePlotEditable = ({
       setQuickAdd((q) => ({ ...q, peakLowEnd: false }));
     }
     updateCurrentTaskData(dataCopy);
+    setRevision((r) => r + 1);
     updateRadarTable(dataCopy);
   };
 
@@ -449,7 +462,7 @@ const WavePlotEditable = ({
       y1: Math.max(...currentData.linePlot.data),
       fillcolor: 'rgba(128, 128, 128, 0.4)',
       line: { width: 0 },
-      layer: 'below', // changed from 'above'
+      layer: 'above',
     },
     {
       type: 'rect',
@@ -459,14 +472,19 @@ const WavePlotEditable = ({
       y1: Math.max(...currentData.linePlot.data),
       fillcolor: 'rgba(128, 128, 128, 0.4)',
       line: { width: 0 },
-      layer: 'below', // changed from 'above'
+      layer: 'above',
     },
   ];
 
-  // ------------------ Render ------------------
   return (
-    <div className="relative flex flex-col items-center pr-8 pl-8 pb-8">
-      <div className="w-full max-w-5xl p-4 bg-white rounded-xl">
+    <div
+      className="relative flex flex-col items-center pr-8 pl-8 pb-8"
+      style={{ minHeight: '450px' }} // Prevents the overall container from collapsing
+    >
+      <div
+        className="w-full max-w-5xl p-4 bg-white rounded-xl"
+        style={{ minHeight: '400px' }} // Ensures the Plot container always has a minimum height
+      >
         <Plot
           ref={plotRef}
           data={[
@@ -510,6 +528,7 @@ const WavePlotEditable = ({
               mode: 'markers',
               marker: { size: 13, color: '#01FDF6' },
             },
+            // ------------------ NEW TRACES for Pending Points ------------------
             {
               y: tempCycle.valleyStart ? [tempCycle.valleyStart.y] : [],
               x: tempCycle.valleyStart ? [tempCycle.valleyStart.x] : [],
@@ -537,6 +556,7 @@ const WavePlotEditable = ({
               },
             },
           ]}
+          revision={revision}
           onClick={handleClickOnPlot}
           config={{
             modeBarButtonsToRemove: [
@@ -558,11 +578,17 @@ const WavePlotEditable = ({
             shapes,
             dragmode: 'pan',
             xaxis: {
-              title: { text: 'Time [s]', standoff: 20 },
+              title: {
+                text: 'Time [s]',
+                standoff: 20,
+              },
               range: [startTime, endTime],
             },
             yaxis: {
-              title: { text: 'Distance', standoff: 20 },
+              title: {
+                text: 'Distance',
+                standoff: 20,
+              },
               automargin: true,
             },
             height: 400,
@@ -579,12 +605,18 @@ const WavePlotEditable = ({
                 family: 'Arial, sans-serif',
               },
             },
-            uirevision: true, // using a constant value to preserve user interactions
+            datarevision: revision,
+            autosize: true,
           }}
-          style={{ width: '100%', borderRadius: '1rem', overflow: 'hidden' }}
+          style={{
+            width: '100%',
+            height: '400px',
+            borderRadius: '1rem',
+          }}
+          useResizeHandler={true}
         />
       </div>
-
+  
       {/* Buttons and Popups */}
       <div className="relative w-full max-w-5xl mt-4">
         <div className="flex justify-center gap-4">
@@ -606,7 +638,7 @@ const WavePlotEditable = ({
           >
             Add Cycle
           </Button>
-
+  
           <Button
             variant="contained"
             onClick={() => {
@@ -625,7 +657,7 @@ const WavePlotEditable = ({
             Remove Cycle
           </Button>
         </div>
-
+  
         {popup.show && (
           <div
             className="absolute left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg mt-2 w-3/4 max-w-xl z-50"
@@ -643,7 +675,7 @@ const WavePlotEditable = ({
             </div>
           </div>
         )}
-
+  
         {alertPopup.show && (
           <div
             className="absolute left-1/2 transform -translate-x-1/2 bg-white p-4 rounded-lg shadow-lg mt-2 w-3/4 max-w-xl z-50"

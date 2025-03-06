@@ -19,8 +19,9 @@ const VideoPlayer = ({
   screen,
   taskBoxes,
   setTaskBoxes,
-  landMarks,
   selectedTask,
+  tasks,
+  setTasks,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -247,8 +248,9 @@ const VideoPlayer = ({
                 fps={fps}
                 persons={persons}
                 taskBoxes={taskBoxes}
-                landMarks={landMarks}
+                landMarks={tasks[selectedTask]?.data?.landMarks}
                 selectedTask={selectedTask}
+                isPlaying={isPlaying}
                 screen={screen}
                 style={{
                   position: 'absolute',
@@ -264,21 +266,21 @@ const VideoPlayer = ({
               />
               {boundingBoxes && (
                 <InteractiveOverlays
-                  boundingBoxes={boundingBoxes}
-                  setBoundingBoxes={setBoundingBoxes}
+                  tasks={tasks}
+                  setTasks={setTasks}
                   taskBoxes={taskBoxes}
                   setTaskBoxes={setTaskBoxes}
+                  fileName={fileName}
                   currentFrame={currentFrame}
-                  persons={persons}
                   zoomLevel={zoomLevel}
                   panOffset={panOffset}
                   screen={screen}
                   videoWidth={videoDimensions.width}
                   videoHeight={videoDimensions.height}
                   selectedTask={selectedTask}
-                  landMarks={landMarks}
                   fps={fps}
                   videoRef={videoRef}
+                  isPlaying={isPlaying}
                 />
               )}
             </div>

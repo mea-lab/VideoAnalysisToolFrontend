@@ -11,6 +11,7 @@ const VideoDrawer = ({
   selectedTask,
   style,
   screen = 'default',
+  isPlaying,
 }) => {
   const canvasRef = useRef(null);
   const currentFrame = useRef(-1);
@@ -73,19 +74,11 @@ const VideoDrawer = ({
       if (!canvas) return;
       const ctx = canvas.getContext('2d');
 
-      // Use the selected task box; assume its start time defines the frame offset for landmarks
       const currentTask = taskBoxes[selectedTask];
       const offset = Math.floor(currentTask.start * fps);
       const frameIndex = currentFrame.current - offset;
       const landMark = landMarks && landMarks[frameIndex];
       if (!landMark) return;
-
-      // Optionally, enlarge the task box (if desired)
-      const taskBox = {
-        ...currentTask,
-        x: Math.max(0, currentTask.x - currentTask.width * 0.125),
-        y: Math.max(0, currentTask.y - currentTask.height * 0.125),
-      };
 
       ctx.fillStyle = 'red';
       if (Array.isArray(landMark) && landMark.length >= 2) {
@@ -93,7 +86,7 @@ const VideoDrawer = ({
           // Multiple landmark points
           landMark.forEach(([lx, ly]) => {
             ctx.beginPath();
-            ctx.arc(lx + taskBox.x, ly + taskBox.y, 12.5, 0, Math.PI * 2);
+            ctx.arc(lx + currentTask.x - currentTask.width*0.125, ly + currentTask.y - currentTask.height*0.125, 12.5, 0, Math.PI * 2);
             ctx.fill();
           });
         } else {
@@ -124,15 +117,15 @@ const VideoDrawer = ({
 
       // Check if currentTime is within any taskBox's time window.
       const inTaskTime = taskBoxes.some((task) => currentTime >= task.start && currentTime <= task.end);
-      if (!inTaskTime) {
+      if (screen !== 'taskDetails' && !inTaskTime) {
         drawBoundingBoxes();
       }
 
-      if (screen === 'taskDetails') {
+      if (screen === 'taskDetails' && isPlaying) {
         drawLandMarks();
       }
     },
-    [getFrameNumber, clearCanvas, drawVideoFrame, drawBoundingBoxes, drawLandMarks, taskBoxes, screen, videoRef]
+    [getFrameNumber, clearCanvas, drawVideoFrame, drawBoundingBoxes, drawLandMarks, taskBoxes, screen, videoRef, isPlaying]
   );
 
   // Set canvas dimensions and start the continuous render loop.
@@ -169,13 +162,12 @@ const VideoDrawer = ({
     };
   }, [videoRef, drawFrame]);
 
-  // Redraw when external dependencies change.
   useEffect(() => {
     lastDrawnFrame.current = -1;
     if (videoRef?.current) {
       drawFrame(videoRef.current.currentTime);
     }
-  }, [persons, taskBoxes, landMarks, selectedTask, screen, drawFrame, videoRef]);
+  }, [persons, taskBoxes, landMarks, selectedTask, screen, drawFrame, videoRef, isPlaying]);
 
   return <canvas ref={canvasRef} style={style} />;
 };

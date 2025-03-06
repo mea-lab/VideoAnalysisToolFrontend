@@ -27,6 +27,8 @@ const SubjectResolution = () => {
     setPersons,
     boxesReady,
     setBoxesReady,
+    tasks,
+    setTasks,
   } = useContext(VideoContext);
 
   const navigate = useNavigate();
@@ -68,6 +70,8 @@ const SubjectResolution = () => {
             fileName={fileName}
             setFileName={setFileName}
             setVideoData={setVideoData}
+            tasks={tasks}
+            setTasks={setTasks}
           />
         </div>
         <div className="flex flex-col gap-4 w-1/2 h-full max-h-screen overflow-y-auto">
