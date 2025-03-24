@@ -52,83 +52,112 @@ const Task = ({
 
     return flag ? 'green' : 'red';
   };
+  
   const handleTaskChange = selectedTask => {
     setSelectedOption(selectedTask);
     onFieldChange(selectedTask.value, 'name', task);
   };
+  
   return (
-    <div className={'flex justify-between gap-2'} key={task.id}>
-      <div className={'w-1/4'}>
-      <Creatable
-        options={options}
-        value={{ label: task.name, value: task.name }}
-        onChange={handleTaskChange}
-        placeholder={'Select or add'}
-        blurInputOnSelect
-        styles={{
-          control: (baseStyles) => ({
-            ...baseStyles,
-            borderColor: getSelectBorderColor(),
-            borderWidth: 2,
-          }),
-        }}
-      />
+    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 py-2 border-b border-gray-200" key={task.id}>
+      <div className="w-full sm:w-2/5 min-w-[150px] max-w-[400px] mb-2 sm:mb-0">
+        <Creatable
+          options={options}
+          value={{ label: task.name, value: task.name }}
+          onChange={handleTaskChange}
+          placeholder={'Select or add'}
+          blurInputOnSelect
+          styles={{
+            control: (baseStyles) => ({
+              ...baseStyles,
+              borderColor: getSelectBorderColor(),
+              borderWidth: 2,
+              minHeight: '38px',
+            }),
+            container: (baseStyles) => ({
+              ...baseStyles,
+              width: '100%',
+            }),
+            menu: (baseStyles) => ({
+              ...baseStyles,
+              zIndex: 10,
+            }),
+          }}
+        />
       </div>
-      <input
-        className={'p-2 w-1/4'}
-        type={'number'}
-        onChange={e => onFieldChange(e.target.value, 'start', task)}
-        onDoubleClick={e => onTimeClick(e.target.value)}
-        min={0}
-        value={task.start}
-      />
-      <IconButton
-        aria-label="mark"
-        title={'Mark start time'}
-        onClick={() => onTimeMark('start', task)}
-      >
-        <TouchApp />
-      </IconButton>
-      <input
-        className={'p-2 w-1/4'}
-        type={'number'}
-        onChange={e => onFieldChange(e.target.value, 'end', task)}
-        onDoubleClick={e => onTimeClick(e.target.value)}
-        min={0}
-        value={task.end}
-      />
-      <IconButton
-        aria-label="mark"
-        title={'Mark end time'}
-        onClick={() => onTimeMark('end', task)}
-      >
-        <TouchApp />
-      </IconButton>
-
-      <button
-        className={'p-2 px-4 rounded-md bg-red-600 text-white font-bold'}
-        onClick={() => onTaskDelete(task)}
-      >
-        X
-      </button>
+      
+      <div className="flex items-center justify-between w-full sm:w-auto">
+        <div className="flex items-center mr-4 w-28 sm:w-32">
+          <input
+            className="p-2 w-20 sm:w-24 text-center border rounded"
+            type="number"
+            onChange={e => onFieldChange(e.target.value, 'start', task)}
+            onDoubleClick={() => onTimeClick(task.start)}
+            min={0}
+            step={0.001}
+            value={task.start}
+          />
+          <IconButton
+            size="small"
+            aria-label="mark start"
+            title="Mark start time"
+            onClick={() => onTimeMark('start', task)}
+          >
+            <TouchApp fontSize="small" />
+          </IconButton>
+        </div>
+        
+        <div className="flex items-center mr-4 w-28 sm:w-32">
+          <input
+            className="p-2 w-20 sm:w-24 text-center border rounded"
+            type="number"
+            onChange={e => onFieldChange(e.target.value, 'end', task)}
+            onDoubleClick={() => onTimeClick(task.end)}
+            min={0}
+            step={0.001}
+            value={task.end}
+          />
+          <IconButton
+            size="small"
+            aria-label="mark end"
+            title="Mark end time"
+            onClick={() => onTimeMark('end', task)}
+          >
+            <TouchApp fontSize="small" />
+          </IconButton>
+        </div>
+        
+        <button
+          className="p-1 sm:p-2 px-2 sm:px-3 rounded-md bg-red-600 text-white font-bold text-sm sm:text-base flex-shrink-0"
+          onClick={() => onTaskDelete(task)}
+          aria-label="Delete task"
+        >
+          X
+        </button>
+      </div>
     </div>
   );
 };
 
 const TaskListLabels = ({ resetTaskSelection }) => {
   return (
-    <div className={'flex justify-between gap-2 items-center'}>
-      <div className={'font-bold'}>Task name</div>
-      <div className={'font-bold'}>Start time</div>
-      <div className={'font-bold'}>End time</div>
-      <div className={'flex gap-2'}>
+    <div className="flex flex-col sm:flex-row justify-between gap-2 items-start sm:items-center border-b-2 border-gray-300 pb-2 mb-2">
+      <div className="font-bold text-lg w-full sm:w-2/5 min-w-[150px] max-w-[400px]">Task</div>
+      <div className="flex items-center justify-between w-full sm:w-auto">
+        <div className="flex items-center justify-between w-64 sm:w-72">
+          <div className="font-bold w-28 sm:w-32 flex items-center">
+            <span className="ml-2">Start</span>
+          </div>
+          <div className="font-bold w-28 sm:w-32 flex items-center">
+            <span className="ml-2">End</span>
+          </div>
+        </div>
         <button
-          className={
-            'p-2 pl-2 px-4 rounded-md bg-blue-500 text-white font-bold flex flex-row gap-2'
-          }
+          className="p-1 sm:p-2 px-3 rounded-md bg-blue-500 text-white font-bold flex items-center gap-1"
           onClick={resetTaskSelection}
         >
-          <RestartAlt /> Reset
+          <RestartAlt fontSize="small" /> 
+          <span className="hidden sm:inline">Reset</span>
         </button>
       </div>
     </div>
@@ -157,7 +186,7 @@ const TaskList = ({
   const onTimeMark = (fieldName, task) => {
     let newTask = { ...task };
     newTask[fieldName] = Number(
-      Number(videoRef.current.currentTime).toFixed(3),
+      Number(videoRef.current?.currentTime || 0).toFixed(3),
     );
     onTaskChange(newTask);
   };
@@ -167,24 +196,24 @@ const TaskList = ({
   };
 
   return (
-    <div
-      className={
-        'px-10 flex-1 py-4 flex flex-col gap-4 h-full overflow-y-auto rounded-lg bg-gray-100'
-      }
-    >
+    <div className="px-3 sm:px-6 lg:px-10 flex-1 py-4 flex flex-col gap-2 h-full overflow-y-auto rounded-lg bg-gray-100 shadow-inner">
       <TaskListLabels resetTaskSelection={resetTaskSelection} />
-      {tasks.map((task, index) => (
-        <Task
-          key={index}
-          task={task}
-          onFieldChange={onFieldChange}
-          onTaskDelete={onTaskDelete}
-          onTimeMark={onTimeMark}
-          onTimeClick={onTimeClick}
-          options={options}
-          setOptions={setOptions}
-        />
-      ))}
+      {tasks.length > 0 ? (
+        tasks.map((task, index) => (
+          <Task
+            key={index}
+            task={task}
+            onFieldChange={onFieldChange}
+            onTaskDelete={onTaskDelete}
+            onTimeMark={onTimeMark}
+            onTimeClick={onTimeClick}
+            options={options}
+            setOptions={setOptions}
+          />
+        ))
+      ) : (
+        <div className="text-center text-gray-500 py-4">No tasks added yet</div>
+      )}
     </div>
   );
 };
