@@ -252,11 +252,13 @@ const InteractiveOverlays = ({
     window.removeEventListener('pointerup', handleLandmarkDragEnd);
     draggingLandmarkRef.current = null;
 
-   const updatedLandmarks = tasksRef.current[selectedTask].data.landMarks;
-    console.log("Upload Data", tasksRef.current[selectedTask].data);
+    const updatedLandmarks = tasksRef.current[selectedTask].data.landMarks;
+    
 
     try {
-      const { start, end, data } = tasksRef.current[selectedTask];
+      const start = tasksRef.current[selectedTask].start;
+      const end = tasksRef.current[selectedTask].end;
+      const data = tasksRef.current[selectedTask].data;
       const currentTaskName = tasksRef.current[selectedTask].name;
       const jsonData = JSON.stringify({
         task_name: currentTaskName,
@@ -264,9 +266,10 @@ const InteractiveOverlays = ({
         end_time: end,
         fps,
         landmarks: updatedLandmarks,
-        alllandmarks: data.allLandMarks,
-        normalization_factor: data.normalizationFactor,
+        ...data
       });
+      console.log("Upload Task Data", data);
+      console.log("Upload Json", JSON.parse(jsonData));
       const uploadData = new FormData();
       uploadData.append('json_data', jsonData);
       const response = await fetch('http://localhost:8000/api/update_landmarks/', {

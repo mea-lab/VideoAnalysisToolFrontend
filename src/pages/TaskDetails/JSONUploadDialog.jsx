@@ -97,15 +97,10 @@ export default function JSONUploadDialog({
         fps: fps,
       };
       
-      // console.log("Uploaded Data Content:", jsonData)
       jsonData = JSON.stringify(jsonData);
       uploadData.append('json_data', jsonData);
 
-      let apiURL = 'http://localhost:8000/api/leg_raise/';
-      if (taskData.name.includes('Leg agility'))
-        apiURL = 'http://localhost:8000/api/leg_raise/';
-      else if (taskData.name.includes('Toe tapping'))
-        apiURL = 'http://localhost:8000/api/toe_tap/';
+      let apiURL = 'http://localhost:8000/api/task_analysis/';
 
       const response = await fetch(apiURL, {
         method: 'POST',

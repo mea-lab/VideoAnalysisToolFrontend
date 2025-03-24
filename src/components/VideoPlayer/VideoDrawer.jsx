@@ -168,7 +168,6 @@ const VideoDrawer = ({
       drawFrame(videoRef.current.currentTime);
     }
   }, [persons, taskBoxes, landMarks, selectedTask, screen, drawFrame, videoRef, isPlaying]);
-
   return <canvas ref={canvasRef} style={style} />;
 };
 

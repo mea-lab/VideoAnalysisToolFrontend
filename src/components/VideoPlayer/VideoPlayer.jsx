@@ -215,7 +215,7 @@ const VideoPlayer = ({
           <div className="flex flex-col w-[10vw]"></div>
           <div
               ref={containerRef}
-              className="relative h-full overflow-hidden rounded-lg"
+              className="relative overflow-hidden rounded-lg"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
