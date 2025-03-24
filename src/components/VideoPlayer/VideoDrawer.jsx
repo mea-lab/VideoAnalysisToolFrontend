@@ -32,13 +32,39 @@ const VideoDrawer = ({
     }
   }, []);
 
+  // Modified drawVideoFrame to clip to a rounded rectangle
   const drawVideoFrame = useCallback(() => {
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (video && canvas) {
       const ctx = canvas.getContext('2d');
       ctx.globalCompositeOperation = 'source-over';
+      const radius = 20; 
+      
+      // Save current context state
+      ctx.save();
+      
+      // Create a rounded rectangle clipping path
+      ctx.beginPath();
+      ctx.moveTo(radius, 0);
+      ctx.lineTo(canvas.width - radius, 0);
+      ctx.arcTo(canvas.width, 0, canvas.width, radius, radius);
+      ctx.lineTo(canvas.width, canvas.height - radius);
+      ctx.arcTo(canvas.width, canvas.height, canvas.width - radius, canvas.height, radius);
+      ctx.lineTo(radius, canvas.height);
+      ctx.arcTo(0, canvas.height, 0, canvas.height - radius, radius);
+      ctx.lineTo(0, radius);
+      ctx.arcTo(0, 0, radius, 0, radius);
+      ctx.closePath();
+      
+      // Apply the clipping region
+      ctx.clip();
+      
+      // Draw the video frame within the clipped area
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      // Restore context to remove clipping
+      ctx.restore();
     }
   }, [videoRef]);
 
@@ -66,7 +92,7 @@ const VideoDrawer = ({
         ctx.stroke();
       });
     }
-  }, [boundingBoxes, persons, videoRef]);
+  }, [boundingBoxes, persons]);
 
   const drawLandMarks = useCallback(() => {
       if (!taskBoxes.length || selectedTask == null) return;
@@ -86,14 +112,14 @@ const VideoDrawer = ({
           // Multiple landmark points
           landMark.forEach(([lx, ly]) => {
             ctx.beginPath();
-            ctx.arc(lx + currentTask.x - currentTask.width*0.125, ly + currentTask.y - currentTask.height*0.125, 12.5, 0, Math.PI * 2);
+            ctx.arc(lx + currentTask.x - currentTask.width * 0.125, ly + currentTask.y - currentTask.height * 0.125, 12.5, 0, Math.PI * 2);
             ctx.fill();
           });
         } else {
           // Single landmark point
           ctx.fillRect(
-            landMark[0] + taskBox.x - 15,
-            landMark[1] + taskBox.y - 15,
+            landMark[0] + currentTask.x - 15,
+            landMark[1] + currentTask.y - 15,
             30,
             30
           );
@@ -125,7 +151,7 @@ const VideoDrawer = ({
         drawLandMarks();
       }
     },
-    [getFrameNumber, clearCanvas, drawVideoFrame, drawBoundingBoxes, drawLandMarks, taskBoxes, screen, videoRef, isPlaying]
+    [getFrameNumber, clearCanvas, drawVideoFrame, drawBoundingBoxes, drawLandMarks, taskBoxes, screen, isPlaying]
   );
 
   // Set canvas dimensions and start the continuous render loop.
@@ -168,7 +194,13 @@ const VideoDrawer = ({
       drawFrame(videoRef.current.currentTime);
     }
   }, [persons, taskBoxes, landMarks, selectedTask, screen, drawFrame, videoRef, isPlaying]);
-  return <canvas ref={canvasRef} style={style} />;
+  
+  return (
+    <canvas
+      ref={canvasRef}
+      style={style}
+    />
+  );
 };
 
 export default VideoDrawer;

@@ -1,3 +1,4 @@
+//src/pages/TaskSelection/TasksWaveForm.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import WaveSurfer from 'wavesurfer.js';
 import RegionsPlugin from 'wavesurfer.js/plugins/regions';
