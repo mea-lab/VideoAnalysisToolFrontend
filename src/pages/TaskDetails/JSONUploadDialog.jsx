@@ -98,9 +98,19 @@ export default function JSONUploadDialog({
       };
       
       jsonData = JSON.stringify(jsonData);
-      uploadData.append('json_data', jsonData);
+      uploadData.append('json_data', jsonData);        
+      const sanitizedTaskName = taskData.name
+        .replace(/[^a-zA-Z0-9]+/g, ' ')
+        .split(' ')
+        .filter(Boolean)
+        .map(word => word.toLowerCase())
+        .join('_');
 
-      let apiURL = 'http://localhost:8000/api/task_analysis/';
+      // Build the API URL with the sanitized task name.
+      let apiURL = `http://localhost:8000/api/${sanitizedTaskName}/`;
+
+      console.log("API URL Generated as:", apiURL);
+      console.log("Upload data", jsonData);
 
       const response = await fetch(apiURL, {
         method: 'POST',
@@ -108,7 +118,7 @@ export default function JSONUploadDialog({
       });
       if (response.ok) {
         const data = await response.json();
-        // console.log("Returned Data Content:", data)
+        console.log("Returned Data Content:", data)
         if (validateJson(data)) {
           handleJSONUpload(true, data);
           setDialogOpen(false);
