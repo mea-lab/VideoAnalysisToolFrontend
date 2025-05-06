@@ -30,7 +30,7 @@ const PlotWidget = ({
       </div>
 
       <div className="pt-6">
-        {tasks[selectedTaskIndex].data?.radar ? (
+        {tasks[selectedTaskIndex].data?.radarTable ? (
           <ScatterPlot
             selectedTaskIndex={selectedTaskIndex}
             tasks={tasks}
