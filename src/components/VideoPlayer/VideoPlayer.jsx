@@ -229,7 +229,7 @@ const VideoPlayer = ({
                   objectFit: 'contain',
                   width: '100%',
                   height: '100%',
-                  opacity: 0, //video element is hidden as it buffers, video drawer will draw the video frames
+                  opacity: 0, //VIDEO ELEMENT NEEDS TO BE HIDDEN AS IT BUFFERS, VIDEO DRAWER WILL DRAW THE VIDEO FRAMES
                 }}
                 onLoadedMetadata={() => {
                   setVideoReady(true);

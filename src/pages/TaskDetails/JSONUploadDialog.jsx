@@ -22,8 +22,7 @@ export default function JSONUploadDialog({
   taskBoxes,
   selectedTask,
 }) {
-  // console.log("Tasks",tasks)
-  // console.log("Selected Task",selectedTask)
+
   const [fileError, setFileError] = useState('');
   const [jsonContent, setJSONContent] = useState(null);
   const [serverProcessing, setServerProcessing] = useState(false);
@@ -40,11 +39,7 @@ export default function JSONUploadDialog({
   };
 
   const handleAutoProcess = async () => {
-    await getAnalysis();
-  };
-
-  const validateJson = data => {
-    return true;
+    await fetchAnalysisDetails();
   };
 
   const handleFileChange = async event => {
@@ -53,11 +48,8 @@ export default function JSONUploadDialog({
       if (file.name.endsWith('.json') || file.name.endsWith('.parse')) {
         try {
           const content = await file.text();
-          const jsonContent = JSON.parse(content);
-          if (validateJson(jsonContent)) {
-            setJSONContent(JSON.parse(content));
-            setFileError('');
-          }
+          setJSONContent(JSON.parse(content));
+          setFileError('');
         } catch (error) {
           setFileError('Error reading the file.');
         }
@@ -67,15 +59,10 @@ export default function JSONUploadDialog({
     }
   };
 
-  const getAnalysis = async () => {
-    setServerProcessing(true);
+  const fetchAnalysisDetails = async () => {
     const videoURL = videoRef.current.src;
-    let blob = await fetch(videoURL).then(r => r.blob());
+    const content = await fetch(videoURL).then(r => r.blob());
 
-    fetchAnalysisDetails(blob);
-  };
-
-  const fetchAnalysisDetails = async content => {
     try {
       let uploadData = new FormData();
       uploadData.append('video', content);
@@ -112,26 +99,30 @@ export default function JSONUploadDialog({
       console.log("API URL Generated as:", apiURL);
       console.log("Upload data", jsonData);
 
+      setServerProcessing(true);
       const response = await fetch(apiURL, {
         method: 'POST',
         body: uploadData,
       });
+      
       if (response.ok) {
         const data = await response.json();
         console.log("Returned Data Content:", data)
-        if (validateJson(data)) {
-          handleJSONUpload(true, data);
-          setDialogOpen(false);
-        } else {
-          throw new Error('Invalid input received from server');
-        }
+        handleJSONUpload(true, data);
+        setDialogOpen(false);
         setServerProcessing(false);
       } else {
-        throw new Error('Server responded with an error!');
+        if (response.status === 404) {
+          setServerProcessing(false);
+          throw new Error('404 Error: API route for task is not found!');
+        }
+        setServerProcessing(false);
+        throw new Error(`Server responded with ${response.status} error`);
       }
+
     } catch (error) {
       console.error('Failed to fetch projects:', error);
-      setFileError(error);
+      setFileError(error.message || 'Unknown error');
     }
   };
 

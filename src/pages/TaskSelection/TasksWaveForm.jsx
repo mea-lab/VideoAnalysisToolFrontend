@@ -94,7 +94,6 @@ const TasksWaveForm = ({
   };
   
   const handleRegionUpdated = (region) => {
-    console.log("Updated")
     if (ignoreRegionEventsRef.current) return;
     
     const startTime = parseFloat(region.start.toFixed(3));
@@ -128,7 +127,6 @@ const TasksWaveForm = ({
   };
 
   const handleRegionUpdate = (region, event) => {
-    console.log("Update")
     if (ignoreRegionEventsRef.current) return;
   
     const startTime = parseFloat(region.start.toFixed(3));

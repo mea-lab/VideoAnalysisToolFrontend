@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
-import ScatterPlot from './Tables/ScatterPlot';
-import WavePlotEditable from './Graphs/WavePlotEditable';
+import ScatterPlot from '../Tables/ScatterPlot';
+import WavePlotEditable from '../Graphs/WavePlotEditable';
 
 
-const PlotWidget = ({
+const HandMovementLeft = ({
   selectedTaskIndex,
   tasks,
   setTasks,
@@ -42,4 +42,4 @@ const PlotWidget = ({
   );
 };
 
-export default PlotWidget;
+export default HandMovementLeft;

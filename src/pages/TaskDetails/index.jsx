@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef, useState } from 'react';
+import React, { useContext, useEffect, useRef, useState, Suspense } from 'react';
 import VideoPlayer from '../../components/VideoPlayer/VideoPlayer';
 import { VideoContext } from '../../contexts/VideoContext';
 import HeaderSection from './HeaderSection';
@@ -29,11 +29,28 @@ const TaskDetails = () => {
 
   const [openJsonUpload, setOpenJsonUpload] = useState(false);
   const [selectedTask, setSelectedTask] = useState(0);
+  const [TaskModule, setTaskModule] = useState(null);
 
   useEffect(() => {
     if (!videoReady) return;
+    if (!tasks || !tasks[selectedTask]) return;
+
     const task = tasks[selectedTask];
-    if (!task) return;
+    const taskName = task.name;
+    const fileName = taskName
+      .toLowerCase()
+      .split(' ')
+      .join('_');
+
+    import(`./Tasks/${fileName}.jsx`)
+      .then(mod => {
+        setTaskModule(() => mod.default)
+      })
+      .catch(err => {
+        console.error(`Couldn’t load task module ${taskName}:`, err)
+        setTaskModule(null)
+    })
+
     videoRef.current.currentTime = task.start;
     videoRef.current.ontimeupdate = event => {
       if (event.target.currentTime >= task.end) {
@@ -106,6 +123,8 @@ const TaskDetails = () => {
   return (
     <div className="flex flex-col h-screen">
       <div className="flex flex-1 overflow-hidden">
+        
+        {/* Start Video Player */}
         <div className="flex-1 min-w-[50%] bg-slate-900">
           <VideoPlayer
             videoURL={videoURL}
@@ -127,6 +146,10 @@ const TaskDetails = () => {
             setTasks={setTasks}
           />
         </div>
+        {/* End Video Player */}
+
+
+        {/* Start Task Details */}
         <div className="flex-1 flex flex-col min-w-[50%] bg-slate-50 overflow-y-auto">
           <HeaderSection
             title="Task Details"
@@ -135,6 +158,7 @@ const TaskDetails = () => {
             fps={fps}
             boundingBoxes={boundingBoxes}
           />
+
           <div className="flex items-center justify-center gap-2 mt-2 mb-4">
             <div className="text-lg font-bold">Current task -</div>
             <select
@@ -144,7 +168,7 @@ const TaskDetails = () => {
             >
               {tasks.map((task, index) => (
                 <option key={index} value={index}>
-                  {task.name}
+                  {task.id}. {task.name}
                 </option>
               ))}
             </select>
@@ -157,6 +181,7 @@ const TaskDetails = () => {
               </Button>
             )}
           </div>
+
           {!tasks[selectedTask]?.data ? (
             <div className="flex justify-center items-center h-full flex-col gap-4 w-full px-10 flex-1 py-4 overflow-y-scroll">
               <div>Analyze the task</div>
@@ -180,18 +205,24 @@ const TaskDetails = () => {
               />
             </div>
           ) : (
-            <PlotWidget
-              selectedTaskIndex={selectedTask}
-              tasks={tasks}
-              setTasks={setTasks}
-              fileName={fileName}
-              videoRef={videoRef}
-              startTime={taskBoxes[selectedTask].start}
-              endTime={taskBoxes[selectedTask].end}
-              handleJSONUpload={handleProcessing}
-            />
+            <>
+              {TaskModule && (
+                <TaskModule
+                  selectedTaskIndex={selectedTask}
+                  tasks={tasks}
+                  setTasks={setTasks}
+                  fileName={fileName}
+                  videoRef={videoRef}
+                  startTime={taskBoxes[selectedTask].start}
+                  endTime={taskBoxes[selectedTask].end}
+                  handleJSONUpload={handleProcessing}
+                />
+              )}
+            </>
           )}
         </div>
+        {/* End Task Details */}
+
       </div>
     </div>
   );

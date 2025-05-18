@@ -311,6 +311,7 @@ const WavePlotEditable = ({
       };
 
       updateCurrentTaskData(updatedData);
+      updateRadarTable(updatedData);
       handleJSONUpload(true, updatedData);
 
       // Reset so we can add another cycle if we want
